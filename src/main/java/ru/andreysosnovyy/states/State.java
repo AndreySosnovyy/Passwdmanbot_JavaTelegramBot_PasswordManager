@@ -4,16 +4,13 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.Bot;
 
 public abstract class State {
-    private Bot bot;
-    private Update update;
+    protected Bot bot;
+    protected Update update;
 
-    State(Bot bot) {
+    State(Bot bot, Update update) {
         this.bot = bot;
-        // логирование
-    }
-
-    public void setUpdate(Update update) {
         this.update = update;
+        // логирование
     }
 
     public Update getUpdate() {
@@ -30,7 +27,5 @@ public abstract class State {
 
     public abstract void commandRepository();
 
-    public void commandGenerate() { // сгенерировать пароль
-
-    }
+    public abstract void commandGenerate();
 }
