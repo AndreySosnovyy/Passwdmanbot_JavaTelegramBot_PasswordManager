@@ -31,13 +31,19 @@ public class Bot extends TelegramLongPollingBot {
         return BotConfig.BOT_TOKEN;
     }
 
-    // todo: нужно получать состояния для каждого чата индивидуально и хранить их в парах
+    // todo: нужно получать состояния для каждого чата индивидуально и хранить их в специальных классах
 
     @Override
     public void onUpdateReceived(Update update) {
-        // обработка полученных сообщений
+
+        // логирование
+
         if (update.hasMessage() && update.getMessage().hasText()) {
-            // логирование
+
+            // записывать в базу данных состояния для каждого чата отдельно, если еще не записано
+
+            // если в базе данных уже есть чат, то брать его состояние и создавать объект, который обработает запрос
+
             state.setUpdate(update);
             switch (update.getMessage().getText()) {
                 case "/help" -> state.commandHelp();

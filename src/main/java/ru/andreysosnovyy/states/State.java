@@ -4,8 +4,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.Bot;
 
 public abstract class State {
-    Bot bot;
-    Update update;
+    private Bot bot;
+    private Update update;
 
     State(Bot bot) {
         this.bot = bot;
@@ -14,6 +14,10 @@ public abstract class State {
 
     public void setUpdate(Update update) {
         this.update = update;
+    }
+
+    public Update getUpdate() {
+        return update;
     }
 
     public abstract void commandHelp();
