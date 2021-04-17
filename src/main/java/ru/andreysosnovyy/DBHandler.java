@@ -2,11 +2,9 @@ package ru.andreysosnovyy;
 
 import ru.andreysosnovyy.config.DBConfig;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import ru.andreysosnovyy.config.tables.*;
+import java.sql.*;
+
+import ru.andreysosnovyy.tables.*;
 
 public class DBHandler extends DBConfig {
 
@@ -17,20 +15,36 @@ public class DBHandler extends DBConfig {
     }
 
 
-    // добавление пользователя в базу данных
-    public void addUserInfo(long ui, String fn, String ln, String un) {
-        String request = "INSERT INTO " + UsersInfo.TABLE_NAME + " (" +
-                UsersInfo.USER_ID + "," + UsersInfo.FIRST_NAME + "," + UsersInfo.LAST_NAME + "," +
-                UsersInfo.USERNAME + ")" + "VALUES(?,?,?,?)";
+    // добавление нового пользователя в базу данных
+    public void addNewUser(User user) {
+        String request = "INSERT INTO " + User.Table.TABLE_NAME + " (" +
+                User.Table.USER_ID + "," + User.Table.FIRST_NAME + "," + User.Table.LAST_NAME + "," +
+                User.Table.USERNAME + ")" + "VALUES(?,?,?,?)";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
-            preparedStatement.setLong(1, ui);
-            preparedStatement.setString(2, fn);
-            preparedStatement.setString(3, ln);
-            preparedStatement.setString(4, un);
+            preparedStatement.setLong(1, user.getId());
+            preparedStatement.setString(2, user.getFirstName());
+            preparedStatement.setString(3, user.getLastName());
+            preparedStatement.setString(4, user.getUsername());
             preparedStatement.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public ResultSet getUser(long userId) {
+        ResultSet resultSet = null;
+
+        String request = "SELECT * FROM " + User.Table.TABLE_NAME + " where " +
+                User.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            resultSet = preparedStatement.executeQuery();
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
     }
 }

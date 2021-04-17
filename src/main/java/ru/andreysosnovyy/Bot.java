@@ -4,8 +4,10 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.config.BotConfig;
-import ru.andreysosnovyy.states.BaseState;
-import ru.andreysosnovyy.states.State;
+import ru.andreysosnovyy.tables.User;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -34,25 +36,27 @@ public class Bot extends TelegramLongPollingBot {
             //  если есть, то получить его состояние
             //  иначе добавить его в таблицу users_info (+) и users_states (-)
 
-            // добавление нового пользователя в базу данных
-//            DBHandler handler = new DBHandler();
-//            long userId = message.getFrom().getId();
-//            String firstName = message.getFrom().getFirstName();
-//            String lastName = message.getFrom().getLastName();
-//            String username = message.getFrom().getUserName();
-//            handler.addUserInfo(userId, firstName, lastName, username);
+            // пользователь, от которого пришло сообщение
+            User user = User.builder()
+                    .id(message.getFrom().getId())
+                    .firstName(message.getFrom().getFirstName())
+                    .lastName(message.getFrom().getLastName())
+                    .username(message.getFrom().getUserName())
+                    .build();
 
-//            switch (update.getMessage().getText()) {
-//                case "/help" -> state.commandHelp();
-//                case "/settings" -> state.commandSettings();
-//                case "/repository", "/repo" -> state.commandRepository();
-//                case "/new" -> state.commandNew();
-//                case "/cancel" -> state.commandCancel();
-//                case "/generate", "/gen" -> state.commandGenerate();
-//                default -> { // обработка сообщения, если это не команда
-//
-//                }
-//            }
+            DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
+            ResultSet resultSet = handler.getUser(user.getId());
+            try {
+                if (resultSet.next()) { // пользователь найден в базе данных
+                    // todo: получить состояние чата пользователя
+                    // todo: обработать запрос воркером
+                } else { // пользователь является новым
+                    handler.addNewUser(user); // добавить пользователя в базу данных
+                    // todo: добавить состояние чата пользователя в базу данных
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

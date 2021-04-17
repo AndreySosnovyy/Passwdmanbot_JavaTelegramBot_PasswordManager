@@ -1,13 +1,13 @@
-package ru.andreysosnovyy.states;
+package ru.andreysosnovyy.workers;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.Bot;
 
-public abstract class State {
+public abstract class Worker extends Thread {
     protected Bot bot;
     protected Update update;
 
-    State(Bot bot, Update update) {
+    Worker(Bot bot, Update update) {
         this.bot = bot;
         this.update = update;
         // логирование
@@ -16,6 +16,8 @@ public abstract class State {
     public Update getUpdate() {
         return update;
     }
+
+    public abstract void run();
 
     public abstract void commandHelp();
 
