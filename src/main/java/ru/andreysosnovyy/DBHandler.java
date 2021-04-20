@@ -8,9 +8,8 @@ import ru.andreysosnovyy.tables.*;
 
 public class DBHandler extends DBConfig {
 
-    public Connection getConnection() throws SQLException, ClassNotFoundException {
+    public Connection getConnection() throws SQLException {
         String connectionSrt = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
-        Class.forName("com.mysql.jdbc.Driver");
         return DriverManager.getConnection(connectionSrt, DB_USER, DB_PASS);
     }
 
@@ -27,11 +26,13 @@ public class DBHandler extends DBConfig {
             preparedStatement.setString(3, user.getLastName());
             preparedStatement.setString(4, user.getUsername());
             preparedStatement.executeUpdate();
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+
+    // возвращает пользователя с указанным id
     public ResultSet getUser(long userId) {
         ResultSet resultSet = null;
 
@@ -41,7 +42,40 @@ public class DBHandler extends DBConfig {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, userId);
             resultSet = preparedStatement.executeQuery();
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+
+    // добавить состояние для чата с конкретным пользователем
+    public void addNewUserState(User user) {
+        String request = "INSERT INTO " + UserState.Table.TABLE_NAME + " (" +
+                UserState.Table.USER_ID + "," +  UserState.Table.STATE + ")" + "VALUES(?,?)";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, user.getId());
+            preparedStatement.setString(2, "base");
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // получить состояние чата конкретного пользователя
+    public ResultSet getUserState(long userId) {
+        ResultSet resultSet = null;
+
+        String request = "SELECT * FROM " + UserState.Table.TABLE_NAME + " where " +
+                UserState.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            resultSet = preparedStatement.executeQuery();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 

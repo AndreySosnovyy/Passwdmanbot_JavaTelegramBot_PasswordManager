@@ -4,10 +4,15 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.config.BotConfig;
+import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.tables.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -29,13 +34,6 @@ public class Bot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
 
-            // todo: добавить таблицу "users_states" в базу
-            //  (id, состояние, время последнего сообщения)
-
-            // todo: проверка на наличие пользователя в базе
-            //  если есть, то получить его состояние
-            //  иначе добавить его в таблицу users_info (+) и users_states (-)
-
             // пользователь, от которого пришло сообщение
             User user = User.builder()
                     .id(message.getFrom().getId())
@@ -45,18 +43,25 @@ public class Bot extends TelegramLongPollingBot {
                     .build();
 
             DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
-            ResultSet resultSet = handler.getUser(user.getId());
+            ResultSet userResultSet = handler.getUser(user.getId()); // поиск пользователя в базе
             try {
-                if (resultSet.next()) { // пользователь найден в базе данных
-                    // todo: получить состояние чата пользователя
-                    // todo: обработать запрос воркером
+                if (userResultSet.next()) { // пользователь найден в базе данных
+                    ResultSet stateResultSet = handler.getUserState(user.getId()); // получить состояние чата пользователя
+                    UserState userState = new UserState(stateResultSet);
+
+//                    String pattern = "dd/MM/yyyy HH:mm:ss";
+//                    DateFormat df = new SimpleDateFormat(pattern);
+//                    System.out.println(df.format(userState.getDatetime()));
+
                 } else { // пользователь является новым
                     handler.addNewUser(user); // добавить пользователя в базу данных
-                    // todo: добавить состояние чата пользователя в базу данных
+                    handler.addNewUserState(user); // добавить состояние чата пользователя в базу данных
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            // todo: обработать запрос воркером
         }
     }
 }

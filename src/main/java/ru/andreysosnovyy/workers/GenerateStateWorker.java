@@ -2,6 +2,7 @@ package ru.andreysosnovyy.workers;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.Bot;
+import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.utils.PasswordGenerator;
 
 public class GenerateStateWorker extends Worker {
