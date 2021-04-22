@@ -16,36 +16,6 @@ public class GenerateStateWorker extends Worker {
 
     }
 
-    @Override
-    public void commandHelp() {
-
-    }
-
-    @Override
-    public void commandSettings() {
-
-    }
-
-    @Override
-    public void commandCancel() {
-
-    }
-
-    @Override
-    public void commandNew() {
-
-    }
-
-    @Override
-    public void commandRepository() {
-
-    }
-
-    @Override
-    public void commandGenerate() {
-
-    }
-
     private String GeneratePassword(int length, boolean useDigits, boolean useLower,
                                     boolean useUpper, boolean usePunctuation) {
         return new PasswordGenerator.PasswordGeneratorBuilder()

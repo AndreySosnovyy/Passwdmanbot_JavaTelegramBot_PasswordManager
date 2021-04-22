@@ -20,16 +20,4 @@ public abstract class Worker extends Thread {
     }
 
     public abstract void run();
-
-    public abstract void commandHelp();
-
-    public abstract void commandSettings();
-
-    public abstract void commandCancel();
-
-    public abstract void commandNew();
-
-    public abstract void commandRepository();
-
-    public abstract void commandGenerate();
 }

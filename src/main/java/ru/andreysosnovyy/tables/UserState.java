@@ -16,7 +16,7 @@ public class UserState {
     String workerName;      // имя воркера, который должен обработать запрос
     Date datetime;          // время последнего запроса пользователя
 
-    // конструктор для результата запроса в базу данных
+    // конструктор для результата запроса из базы данных
     public UserState(ResultSet resultSet) {
         DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
         ResultSet userResultSet = null;
@@ -69,5 +69,9 @@ public class UserState {
         public static final String USER_ID = "user_id";
         public static final String TIME_OF_LAST_REQUEST = "time_of_last_request";
         public static final String STATE = "state";
+    }
+
+    public static class StateNames {
+        public static final String BASE_STATE = "base";
     }
 }

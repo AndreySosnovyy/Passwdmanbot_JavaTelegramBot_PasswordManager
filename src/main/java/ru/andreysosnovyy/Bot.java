@@ -1,18 +1,18 @@
 package ru.andreysosnovyy;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.config.BotConfig;
-import ru.andreysosnovyy.tables.UserState;
+import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.User;
+import ru.andreysosnovyy.tables.UserState;
+import ru.andreysosnovyy.workers.BaseStateWorker;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -28,40 +28,48 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-
-        // логирование
-
+        // todo: логирование
         if (update.hasMessage() && update.getMessage().hasText()) {
+            DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
             Message message = update.getMessage();
-
-            // пользователь, от которого пришло сообщение
-            User user = User.builder()
+            User user = User.builder() // пользователь, от которого пришло сообщение
                     .id(message.getFrom().getId())
                     .firstName(message.getFrom().getFirstName())
                     .lastName(message.getFrom().getLastName())
                     .username(message.getFrom().getUserName())
                     .build();
 
-            DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
-            ResultSet userResultSet = handler.getUser(user.getId()); // поиск пользователя в базе
-            try {
-                if (userResultSet.next()) { // пользователь найден в базе данных
-                    ResultSet stateResultSet = handler.getUserState(user.getId()); // получить состояние чата пользователя
-                    UserState userState = new UserState(stateResultSet);
-
-//                    String pattern = "dd/MM/yyyy HH:mm:ss";
-//                    DateFormat df = new SimpleDateFormat(pattern);
-//                    System.out.println(df.format(userState.getDatetime()));
-
-                } else { // пользователь является новым
-                    handler.addNewUser(user); // добавить пользователя в базу данных
-                    handler.addNewUserState(user); // добавить состояние чата пользователя в базу данных
+            switch (message.getText()) {
+                case "/start" -> {
+                    try {
+                        ResultSet userResultSet = handler.getUser(user.getId()); // поиск пользователя в базе
+                        if (!userResultSet.next()) { // пользователь не найден в базе данных
+                            handler.addNewUser(user); // добавить пользователя в базу данных
+                            handler.addNewUserState(user); // добавить состояние чата пользователя в базу данных
+                            new BaseStateWorker(this, update).start(); // запустить обработчика
+                        } else {
+                            try {
+                                execute(new SendMessage(message.getChatId().toString(), "Повторите ввод"));
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
+
+                case "/cancel" -> {
+                    // todo: убрать последствия всех предыдущих действий
+                    handler.setUserState(message.getChatId(), UserState.StateNames.BASE_STATE);
+                    new BaseStateWorker(this, update).start(); // перейти в начальное состояние
+                }
+
+                case Messages.GENERATE_PASSWORD -> {
+                }
             }
 
-            // todo: обработать запрос воркером
+
         }
     }
 }

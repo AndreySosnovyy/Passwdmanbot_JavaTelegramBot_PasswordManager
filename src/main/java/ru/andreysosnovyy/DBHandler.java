@@ -1,10 +1,10 @@
 package ru.andreysosnovyy;
 
 import ru.andreysosnovyy.config.DBConfig;
+import ru.andreysosnovyy.tables.User;
+import ru.andreysosnovyy.tables.UserState;
 
 import java.sql.*;
-
-import ru.andreysosnovyy.tables.*;
 
 public class DBHandler extends DBConfig {
 
@@ -53,11 +53,11 @@ public class DBHandler extends DBConfig {
     // добавить состояние для чата с конкретным пользователем
     public void addNewUserState(User user) {
         String request = "INSERT INTO " + UserState.Table.TABLE_NAME + " (" +
-                UserState.Table.USER_ID + "," +  UserState.Table.STATE + ")" + "VALUES(?,?)";
+                UserState.Table.USER_ID + "," + UserState.Table.STATE + ")" + "VALUES(?,?)";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, user.getId());
-            preparedStatement.setString(2, "base");
+            preparedStatement.setString(2, UserState.StateNames.BASE_STATE);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -80,5 +80,20 @@ public class DBHandler extends DBConfig {
         }
 
         return resultSet;
+    }
+
+
+    // обновить состояние чата пользователя
+    public void setUserState(Long chatId, String newState) {
+        String request = "UPDATE users_states SET " + UserState.Table.STATE + "=? WHERE " +
+                UserState.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setString(1, newState);
+            preparedStatement.setLong(2, chatId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

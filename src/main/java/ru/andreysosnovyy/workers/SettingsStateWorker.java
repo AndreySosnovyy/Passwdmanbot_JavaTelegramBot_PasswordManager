@@ -15,33 +15,5 @@ public class SettingsStateWorker extends Worker {
 
     }
 
-    @Override
-    public void commandHelp() {
 
-    }
-
-    @Override
-    public void commandSettings() {
-
-    }
-
-    @Override
-    public void commandCancel() {
-
-    }
-
-    @Override
-    public void commandNew() {
-
-    }
-
-    @Override
-    public void commandRepository() {
-
-    }
-
-    @Override
-    public void commandGenerate() {
-
-    }
 }
