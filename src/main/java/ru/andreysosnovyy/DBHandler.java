@@ -57,7 +57,7 @@ public class DBHandler extends DBConfig {
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, user.getId());
-            preparedStatement.setString(2, UserState.StateNames.BASE_STATE);
+            preparedStatement.setString(2, UserState.Names.BASE);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -66,10 +66,10 @@ public class DBHandler extends DBConfig {
 
 
     // получить состояние чата конкретного пользователя
-    public ResultSet getUserState(long userId) {
+    public String getUserState(long userId) {
         ResultSet resultSet = null;
 
-        String request = "SELECT * FROM " + UserState.Table.TABLE_NAME + " where " +
+        String request = "SELECT " + UserState.Table.STATE + " FROM " + UserState.Table.TABLE_NAME + " WHERE " +
                 UserState.Table.USER_ID + "=?";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
@@ -79,7 +79,16 @@ public class DBHandler extends DBConfig {
             e.printStackTrace();
         }
 
-        return resultSet;
+        String state = null;
+        try {
+            assert resultSet != null;
+            if (resultSet.next()) {
+                state = resultSet.getString(UserState.Table.STATE);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return state;
     }
 
 

@@ -71,7 +71,8 @@ public class UserState {
         public static final String STATE = "state";
     }
 
-    public static class StateNames {
-        public static final String BASE_STATE = "base";
+    public static class Names {
+        public static final String BASE = "base";
+        public static final String GENERATE = "generate";
     }
 }

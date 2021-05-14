@@ -1,10 +1,10 @@
 package ru.andreysosnovyy.config;
 
 public class Messages {
-    public static final String ADD_NEW_PASSWORD = "Р”РѕР±Р°РІРёС‚СЊ РЅРѕРІС‹Р№ РїР°СЂРѕР»СЊ";
-    public static final String VIEW_STORAGE = " РџРѕСЃРјРѕС‚СЂРµС‚СЊ С…СЂР°РЅРёР»РёС‰Рµ";
-    public static final String GENERATE_PASSWORD = "РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РїР°СЂРѕР»СЊ";
-    public static final String SETTINGS = "РќР°СЃС‚СЂРѕР№РєРё";
+    public static final String ADD_NEW_PASSWORD = "Добавить новый пароль";
+    public static final String VIEW_STORAGE = " Посмотреть хранилище";
+    public static final String GENERATE_PASSWORD = "Сгенерировать пароль";
+    public static final String SETTINGS = "Настройки";
 //    public static final String  = "";
 
 }
