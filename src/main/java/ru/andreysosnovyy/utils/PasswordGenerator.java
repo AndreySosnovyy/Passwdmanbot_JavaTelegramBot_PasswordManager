@@ -8,10 +8,10 @@ public final class PasswordGenerator {
 
     // todo: добавить возможность исключать похожие символы
 
-    private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
-    private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String DIGITS = "0123456789";
-    private static final String PUNCTUATION = "!@#$%&*()_+-=[]|,./?><";
+    public static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
+    public static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final String DIGITS = "0123456789";
+    public static final String PUNCTUATION = "!@#$%&*()_+-=[]|,./?><";
     private boolean useLower;
     private boolean useUpper;
     private boolean useDigits;

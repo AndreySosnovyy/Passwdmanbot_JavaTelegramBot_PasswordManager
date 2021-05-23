@@ -71,7 +71,7 @@ public class BaseStateWorker extends Worker {
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(update.getMessage().getChatId().toString())
                 .replyMarkup(replyKeyboardMarkup)
-                .text("Воспользуйтесь вспомогательным меню:")
+                .text(Messages.USE_MENU)
                 .build();
         try {
             bot.execute(sendMessage);
