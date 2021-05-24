@@ -1,15 +1,15 @@
 package ru.andreysosnovyy;
 
 import ru.andreysosnovyy.config.DBConfig;
+import ru.andreysosnovyy.tables.Password;
+import ru.andreysosnovyy.tables.RepositoryPassword;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
+import ru.andreysosnovyy.utils.Hash;
 
 import java.sql.*;
 
 public class DBHandler extends DBConfig {
-
-    public static class StateNotFoundException extends Exception {
-    }
 
     public Connection getConnection() throws SQLException {
         String connectionSrt = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
@@ -102,6 +102,67 @@ public class DBHandler extends DBConfig {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setString(1, newState);
             preparedStatement.setLong(2, chatId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // добавить пароль от репозитория пользователя
+    public void addRepositoryPasswordHash(long userId, String password) {
+        // хэширование пароля перед отправкой
+        String hashedPassword = Hash.getHash(password);
+
+        String request = "INSERT INTO " + RepositoryPassword.Table.TABLE_NAME + " (" +
+                RepositoryPassword.Table.USER_ID + "," +
+                RepositoryPassword.Table.REPOSITORY_PASSWORD + ")" + "VALUES(?,?)";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            preparedStatement.setString(2, hashedPassword);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // получить хэш пароля пользователя
+    public String getRepositoryPasswordHash(long userId) {
+        ResultSet resultSet = null;
+
+        String request = "SELECT " + RepositoryPassword.Table.REPOSITORY_PASSWORD +
+                " FROM " + RepositoryPassword.Table.TABLE_NAME + " WHERE " +
+                RepositoryPassword.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            resultSet = preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            assert resultSet != null;
+            if (resultSet.next()) {
+                return resultSet.getString(RepositoryPassword.Table.REPOSITORY_PASSWORD);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    // добавить новый пароль для пользователя
+    public void addPassword(long userId, String password) {
+        String request = "INSERT INTO " + Password.Table.TABLE_NAME + " (" +
+                Password.Table.USER_ID + "," + Password.Table.PASSWORD + ")" + "VALUES(?,?)";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            preparedStatement.setString(2, password);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -8,6 +8,7 @@ import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
+import ru.andreysosnovyy.utils.Hash;
 import ru.andreysosnovyy.utils.PasswordGenerator;
 import ru.andreysosnovyy.workers.BaseKeyboardWorker;
 import ru.andreysosnovyy.workers.DeleteMessageWorker;
@@ -30,6 +31,7 @@ public class Bot extends TelegramLongPollingBot {
         // todo: логирование
 
         if (update.hasMessage() && update.getMessage().hasText()) {
+
             DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
             String userState; // состояние пользователя, отправившего сообщение
             Message message = update.getMessage(); // сообщение из апдейта
