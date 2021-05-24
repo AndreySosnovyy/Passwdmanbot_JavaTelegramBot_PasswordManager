@@ -60,7 +60,7 @@ public class DBHandler extends DBConfig {
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, user.getId());
-            preparedStatement.setString(2, UserState.Names.BASE);
+            preparedStatement.setString(2, UserState.Names.BASE_NO_REPOSITORY_PASSWORD);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -110,17 +110,14 @@ public class DBHandler extends DBConfig {
 
 
     // добавить пароль от репозитория пользователя
-    public void addRepositoryPasswordHash(long userId, String password) {
-        // хэширование пароля перед отправкой
-        String hashedPassword = Hash.getHash(password);
-
+    public void addRepositoryPasswordHash(long userId, String hash) {
         String request = "INSERT INTO " + RepositoryPassword.Table.TABLE_NAME + " (" +
                 RepositoryPassword.Table.USER_ID + "," +
                 RepositoryPassword.Table.REPOSITORY_PASSWORD + ")" + "VALUES(?,?)";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, userId);
-            preparedStatement.setString(2, hashedPassword);
+            preparedStatement.setString(2, hash);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -163,6 +160,18 @@ public class DBHandler extends DBConfig {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, userId);
             preparedStatement.setString(2, password);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // для админа
+    public void clearDB() {
+        String request = "DELETE FROM users WHERE `id` > 0";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

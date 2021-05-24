@@ -73,6 +73,7 @@ public class UserState {
 
     public static class Names {
         public static final String BASE = "base";
+        public static final String BASE_NO_REPOSITORY_PASSWORD = "base_no_repository_password";
 
 //        public static final String REPOSITORY = "repository";
         public static final String REPOSITORY_PASS = "repository_pass";
