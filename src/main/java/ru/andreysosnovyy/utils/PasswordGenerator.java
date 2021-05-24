@@ -1,6 +1,7 @@
 package ru.andreysosnovyy.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -17,9 +18,11 @@ public final class PasswordGenerator {
     private boolean useDigits;
     private boolean usePunctuation;
 
+
     private PasswordGenerator() {
         throw new UnsupportedOperationException("Empty constructor is not supported.");
     }
+
 
     private PasswordGenerator(PasswordGeneratorBuilder builder) {
         this.useLower = builder.useLower;
@@ -27,6 +30,7 @@ public final class PasswordGenerator {
         this.useDigits = builder.useDigits;
         this.usePunctuation = builder.usePunctuation;
     }
+
 
     public static class PasswordGeneratorBuilder {
 
@@ -67,6 +71,7 @@ public final class PasswordGenerator {
         }
     }
 
+
     public String generate(int length) {
         // Argument Validation
         if (length <= 0) {
@@ -99,5 +104,14 @@ public final class PasswordGenerator {
             password.append(charCategory.charAt(position));
         }
         return new String(password);
+    }
+
+
+    public static boolean checkIfPassword(String input) {
+        return input.matches(".*[abcdefghijklmnopqrstuvwxyz].*") &&
+                input.matches(".*[ABCDEFGHIJKLMNOPQRSTUVWXYZ].*") &&
+                input.matches(".*[0123456789].*") &&
+                input.matches(".*[\\Q!@#$%&*()_+-=][|,./?><\\E].*") &&
+                input.length() == 16;
     }
 }

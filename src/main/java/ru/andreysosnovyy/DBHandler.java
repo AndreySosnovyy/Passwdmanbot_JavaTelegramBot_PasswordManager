@@ -8,6 +8,9 @@ import java.sql.*;
 
 public class DBHandler extends DBConfig {
 
+    public static class StateNotFoundException extends Exception {
+    }
+
     public Connection getConnection() throws SQLException {
         String connectionSrt = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
         return DriverManager.getConnection(connectionSrt, DB_USER, DB_PASS);
@@ -79,16 +82,15 @@ public class DBHandler extends DBConfig {
             e.printStackTrace();
         }
 
-        String state = null;
         try {
             assert resultSet != null;
             if (resultSet.next()) {
-                state = resultSet.getString(UserState.Table.STATE);
+                return resultSet.getString(UserState.Table.STATE);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return state;
+        return null;
     }
 
 

@@ -73,6 +73,14 @@ public class UserState {
 
     public static class Names {
         public static final String BASE = "base";
-        public static final String GENERATE = "generate";
+
+//        public static final String REPOSITORY = "repository";
+        public static final String REPOSITORY_PASS = "repository_pass";
+        public static final String REPOSITORY_LIST = "repository_list";
+
+//        public static final String GENERATE = "generate";
+        public static final String GENERATE_COPY = "generate_copy";
+
+//        public static final String SETTINGS = "settings";
     }
 }
