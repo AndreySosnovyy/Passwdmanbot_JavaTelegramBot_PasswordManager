@@ -153,13 +153,19 @@ public class DBHandler extends DBConfig {
 
 
     // добавить новый пароль для пользователя
-    public void addPassword(long userId, String password) {
+    public void addPassword(long userId, String serviceName, String login,
+                            String password, String comment) {
         String request = "INSERT INTO " + Password.Table.TABLE_NAME + " (" +
-                Password.Table.USER_ID + "," + Password.Table.PASSWORD + ")" + "VALUES(?,?)";
+                Password.Table.USER_ID + "," + Password.Table.SERVICE_NAME + "," +
+                Password.Table.LOGIN + "," + Password.Table.PASSWORD + "," +
+                Password.Table.COMMENT + ")" + "VALUES(?,?,?,?,?)";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, userId);
-            preparedStatement.setString(2, password);
+            preparedStatement.setString(2, serviceName);
+            preparedStatement.setString(3, login);
+            preparedStatement.setString(4, password);
+            preparedStatement.setString(5, comment);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,28 +1,26 @@
 package ru.andreysosnovyy;
 
-import org.apache.commons.lang3.StringUtils;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
-import ru.andreysosnovyy.utils.Hash;
-import ru.andreysosnovyy.utils.PasswordGenerator;
-import ru.andreysosnovyy.utils.RepoPassWitness;
+import ru.andreysosnovyy.utils.*;
 import ru.andreysosnovyy.workers.BaseKeyboardWorker;
 import ru.andreysosnovyy.workers.DeleteMessageWorker;
-import ru.andreysosnovyy.workers.EditMessageWorker;
 import ru.andreysosnovyy.workers.GenerateWorker;
+import ru.andreysosnovyy.workers.RepositoryWorker;
 
 public class Bot extends TelegramLongPollingBot {
 
     RepoPassWitness repoPassWitness = null;
+    ActiveSessionsKeeper activeSessionsKeeper = null;
+    DBPasswordRecordsBuilder dbPasswordRecordsBuilder = null;
 
     @Override
     public String getBotUsername() {
@@ -39,8 +37,11 @@ public class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         // todo: логирование
 
-        // инициализация объекта для работы с неподтвержденными паролями от хранилищ
+        // инициализация объектов для работы с неподтвержденными паролями от хранилищ,
+        // хранителя активных сессий и билдера записей в базу данных
         if (repoPassWitness == null) repoPassWitness = new RepoPassWitness();
+        if (activeSessionsKeeper == null) activeSessionsKeeper = new ActiveSessionsKeeper();
+        if (dbPasswordRecordsBuilder == null) dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder();
 
         if (update.hasMessage() && update.getMessage().hasText()) {
             DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
@@ -53,6 +54,10 @@ public class Bot extends TelegramLongPollingBot {
                     case "/clear_db" -> {
                         handler.clearDB();
                         return;
+                    }
+
+                    case "/stop_bot" -> {
+                        System.exit(1);
                     }
                 }
             }
@@ -78,7 +83,7 @@ public class Bot extends TelegramLongPollingBot {
                 case UserState.Names.BASE_NO_REPOSITORY_PASSWORD -> {
                     long userId = message.getFrom().getId();
 
-                    // Удаление пароля (через секунду)
+                    // Удаление пароля
                     DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setChatId(message.getChatId().toString());
                     deleteMessage.setMessageId(message.getMessageId());
@@ -103,10 +108,10 @@ public class Bot extends TelegramLongPollingBot {
                 case UserState.Names.BASE -> {
                     if (message.getText().equals("/start")) {
                         new BaseKeyboardWorker(this, update).start();
-                    } else if (message.getText().equals(Messages.VIEW_REPOSITORY)) {
-                        // обработчик для хранилища
-                        // todo: запросить мастер-пароль
-                        // todo: держать сессию работы с хранилищем активной 2 минуты после последнего действия
+                    } else if (message.getText().equals(Messages.VIEW_REPOSITORY)) { // обработчик для хранилища
+                        // запросить мастер-пароль
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_PASS);
+                        execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_REPO_PASS));
                     } else if (message.getText().equals(Messages.GENERATE_PASSWORD)) {
                         new GenerateWorker(this, update).start();
                     } else if (message.getText().equals(Messages.SETTINGS)) {
@@ -123,6 +128,21 @@ public class Bot extends TelegramLongPollingBot {
                         // вернуть стартовую клавиатуру
                         new BaseKeyboardWorker(this, update).start();
                     }
+                }
+
+                case UserState.Names.REPOSITORY_PASS -> {
+                    // проверка хэша мастер-пароля
+                    if (Hash.checkPassword(message.getText(), handler.getRepositoryPasswordHash(message.getChatId()))) {
+                        activeSessionsKeeper.addActiveSession(message.getChatId()); // активировать сессию
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST); // сменить состояние
+                        new RepositoryWorker(this, update).start(); // запустить воркер
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.WRONG_REPO_PASS));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                    }
+                    // удаление пароля
+                    new DeleteMessageWorker(this, new DeleteMessage(
+                            message.getChatId().toString(), message.getMessageId()), 0).start();
                 }
             }
         }

@@ -42,11 +42,13 @@ public class Messages {
     public static final String TRY_AGAIN_REPOSITORY_PASSWORD = CROSS_MARK_EMOJI +
             " | Пароли не совпадают, попробуйте еще раз (через минуту Вы сможете придумать новый мастер-пароль):";
     public static final String CREATED_SUCCESSFUL = PARTY_POPPER_EMOJI + " | Мастер-пароль успешно создан!";
+    public static final String ENTER_REPO_PASS = KEY_EMOJI + " | Введите свой мастер-пароль:";
+    public static final String WRONG_REPO_PASS = NO_ENTRY_EMOJI + " | Неверный пароль!";
 
     // ============================================================================================================= //
 
     // кнопки
-    public static final String VIEW_REPOSITORY = OPEN_FILE_FOLDER_EMOJI + " Посмотреть хранилище";
+    public static final String VIEW_REPOSITORY = OPEN_FILE_FOLDER_EMOJI + " Хранилище";
     public static final String GENERATE_PASSWORD = LOCK_WITH_INK_PEN_EMOJI + " Сгенерировать пароль";
     public static final String SETTINGS = GEAR_EMOJI + " Настройки";
     public static final String BACK = BACK_EMOJI + " Назад";

@@ -1,15 +1,12 @@
 package ru.andreysosnovyy.workers;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.Bot;
-import ru.andreysosnovyy.DBHandler;
 import ru.andreysosnovyy.config.Messages;
-import ru.andreysosnovyy.tables.User;
 
 import java.util.ArrayList;
 
@@ -18,8 +15,6 @@ public class BaseKeyboardWorker extends Worker {
     public BaseKeyboardWorker(Bot bot, Update update) {
         super(bot, update);
     }
-
-    DBHandler handler = new DBHandler();
 
     @Override
     public void run() {
@@ -31,6 +26,7 @@ public class BaseKeyboardWorker extends Worker {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
+//        replyKeyboardMarkup.setOneTimeKeyboard(false);
         ArrayList<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
         firstKeyboardRow.add(Messages.VIEW_REPOSITORY);

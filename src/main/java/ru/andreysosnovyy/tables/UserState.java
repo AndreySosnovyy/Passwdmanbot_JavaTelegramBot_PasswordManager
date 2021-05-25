@@ -72,15 +72,11 @@ public class UserState {
     }
 
     public static class Names {
-        public static final String BASE = "base";
-        public static final String BASE_NO_REPOSITORY_PASSWORD = "base_no_repository_password";
+        public static final String BASE = "base"; // начальное состояние с клавиатурой
+        public static final String BASE_NO_REPOSITORY_PASSWORD = "base_no_repository_password"; // еще не добавлен мастер-пароль
 
-//        public static final String REPOSITORY = "repository";
-        public static final String REPOSITORY_PASS = "repository_pass";
-        public static final String REPOSITORY_LIST = "repository_list";
-
-//        public static final String GENERATE = "generate";
-        public static final String GENERATE_COPY = "generate_copy";
+        public static final String REPOSITORY_PASS = "repository_pass"; // ожидается ввод пароля от репозитория
+        public static final String REPOSITORY_LIST = "repository_list"; // активная сессия работы с хранилищем (просмотр)
 
 //        public static final String SETTINGS = "settings";
     }

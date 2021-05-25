@@ -52,7 +52,7 @@ public class RepoPassWitness {
         return false;
     }
 
-    public void cleaner() {
+    private void cleaner() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> unconfirmedRepoPasses.removeIf(unconfirmedRepoPass ->
                 !checkTimeout(unconfirmedRepoPass.time)), 0, 5_000, TimeUnit.MILLISECONDS);
