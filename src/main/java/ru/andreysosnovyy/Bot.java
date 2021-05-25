@@ -1,10 +1,11 @@
 package ru.andreysosnovyy;
 
+import org.apache.commons.lang3.StringUtils;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.andreysosnovyy.config.BotConfig;
@@ -16,6 +17,7 @@ import ru.andreysosnovyy.utils.PasswordGenerator;
 import ru.andreysosnovyy.utils.RepoPassWitness;
 import ru.andreysosnovyy.workers.BaseKeyboardWorker;
 import ru.andreysosnovyy.workers.DeleteMessageWorker;
+import ru.andreysosnovyy.workers.EditMessageWorker;
 import ru.andreysosnovyy.workers.GenerateWorker;
 
 public class Bot extends TelegramLongPollingBot {
@@ -75,6 +77,13 @@ public class Bot extends TelegramLongPollingBot {
             switch (userState) {
                 case UserState.Names.BASE_NO_REPOSITORY_PASSWORD -> {
                     long userId = message.getFrom().getId();
+
+                    // Удаление пароля (через секунду)
+                    DeleteMessage deleteMessage = new DeleteMessage();
+                    deleteMessage.setChatId(message.getChatId().toString());
+                    deleteMessage.setMessageId(message.getMessageId());
+                    new DeleteMessageWorker(this, deleteMessage, 0).start();
+
                     if (repoPassWitness.checkIfExists(userId)) { // если есть
                         if (repoPassWitness.checkUnconfirmedRepoPass(userId, message.getText())) { // если совпал
                             String hashedPassword = Hash.getHash(message.getText());
@@ -92,43 +101,32 @@ public class Bot extends TelegramLongPollingBot {
                 }
 
                 case UserState.Names.BASE -> {
-                    switch (message.getText()) {
-                        case "/start" -> {
-                            new BaseKeyboardWorker(this, update).start();
+                    if (message.getText().equals("/start")) {
+                        new BaseKeyboardWorker(this, update).start();
+                    } else if (message.getText().equals(Messages.VIEW_REPOSITORY)) {
+                        // обработчик для хранилища
+                        // todo: запросить мастер-пароль
+                        // todo: держать сессию работы с хранилищем активной 2 минуты после последнего действия
+                    } else if (message.getText().equals(Messages.GENERATE_PASSWORD)) {
+                        new GenerateWorker(this, update).start();
+                    } else if (message.getText().equals(Messages.SETTINGS)) {
+                        // обработчик для настроек
+                        // todo: 1) изменить мастер пароль
+                        // todo: 2) удалить хранилище и мастер-пароль (+ сменить состояние)
+                    } else {
+                        // если пришел пароль, то его надо будет удалить
+                        if (PasswordGenerator.checkIfPassword(message.getText())) {
+                            new DeleteMessageWorker(this, new DeleteMessage(
+                                    message.getChatId().toString(), message.getMessageId()),
+                                    15_000).start();
                         }
-
-                        case Messages.VIEW_REPOSITORY -> {
-                            // обработчик для хранилища
-
-                            // todo: запросить мастер-пароль
-                            // todo: держать сессию работы с хранилищем активной 2 минуты после последнего действия
-                        }
-
-                        case Messages.GENERATE_PASSWORD -> {
-                            new GenerateWorker(this, update).start();
-                        }
-
-                        case Messages.SETTINGS -> {
-                            // обработчик для настроек
-
-                            // todo: 1) изменить мастер пароль
-                            // todo: 2) удалить хранилище и мастер-пароль (+ сменить состояние)
-                        }
-
-                        default -> {
-                            // если пришел пароль, то его надо будет удалить
-                            if (PasswordGenerator.checkIfPassword(message.getText())) {
-                                new DeleteMessageWorker(this, new DeleteMessage(
-                                        message.getChatId().toString(), message.getMessageId()),
-                                        15_000).start();
-                            }
-                            // вернуть стартовую клавиатуру
-                            new BaseKeyboardWorker(this, update).start();
-                        }
+                        // вернуть стартовую клавиатуру
+                        new BaseKeyboardWorker(this, update).start();
                     }
                 }
             }
         }
     }
 }
+
 

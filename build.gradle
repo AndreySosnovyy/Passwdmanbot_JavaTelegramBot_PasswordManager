@@ -15,4 +15,6 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
     implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.4.6'
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '4.0.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 }
