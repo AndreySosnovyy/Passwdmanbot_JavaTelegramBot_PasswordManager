@@ -59,11 +59,6 @@ public class UserState {
     }
 
 
-//    public boolean CheckTimeout(int shift) {
-//        // shift - разница между временем последнего обращения и текущим (в секундах) для проверки
-//    }
-
-
     public static class Table {
         public static final String TABLE_NAME = "users_states";
         public static final String USER_ID = "user_id";
@@ -77,6 +72,11 @@ public class UserState {
 
         public static final String REPOSITORY_PASS = "repository_pass"; // ожидается ввод пароля от репозитория
         public static final String REPOSITORY_LIST = "repository_list"; // активная сессия работы с хранилищем (просмотр)
+        public static final String REPOSITORY_SEARCH = "repository_search"; // ожидание ввода слова для поиска среди названий сервисов
+        public static final String REPOSITORY_ADD_SERVICE_NAME = "repository_add_service_name"; // ожидание ввода названия сервиса
+        public static final String REPOSITORY_ADD_LOGIN = "repository_add_login"; // ожидание ввода логина
+        public static final String REPOSITORY_ADD_PASSWORD = "repository_add_password"; // ожидание ввода пароля
+        public static final String REPOSITORY_ADD_COMMENT = "repository_add_comment"; // ожидание ввода комментария
 
 //        public static final String SETTINGS = "settings";
     }

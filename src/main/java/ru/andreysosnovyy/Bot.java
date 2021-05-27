@@ -12,9 +12,11 @@ import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.utils.*;
 import ru.andreysosnovyy.workers.BaseKeyboardWorker;
-import ru.andreysosnovyy.workers.DeleteMessageWorker;
+import ru.andreysosnovyy.utils.DeleteMessageWorker;
 import ru.andreysosnovyy.workers.GenerateWorker;
 import ru.andreysosnovyy.workers.RepositoryWorker;
+
+import java.sql.SQLException;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -117,7 +119,7 @@ public class Bot extends TelegramLongPollingBot {
                     } else if (message.getText().equals(Messages.SETTINGS)) {
                         // обработчик для настроек
                         // todo: 1) изменить мастер пароль
-                        // todo: 2) удалить хранилище и мастер-пароль (+ сменить состояние)
+                        // todo: 2) удалить хранилище
                     } else {
                         // если пришел пароль, то его надо будет удалить
                         if (PasswordGenerator.checkIfPassword(message.getText())) {
@@ -143,6 +145,101 @@ public class Bot extends TelegramLongPollingBot {
                     // удаление пароля
                     new DeleteMessageWorker(this, new DeleteMessage(
                             message.getChatId().toString(), message.getMessageId()), 0).start();
+                }
+
+                case UserState.Names.REPOSITORY_LIST -> {
+                    // проверка на активность сессии
+                    if (activeSessionsKeeper.isActive(message.getChatId())) {
+                        if (message.getText().equals(Messages.ADD_NEW_PASSWORD)) {
+                            dbPasswordRecordsBuilder.addRecord(message.getChatId());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
+                            execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_SERVICE_NAME));
+                        } else if (message.getText().equals(Messages.SEARCH)) {
+
+                        } else if (message.getText().equals(Messages.BACK)) {
+                            handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                            new BaseKeyboardWorker(this, update).start();
+                        } else {
+
+                        }
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboardWorker(this, update).start();
+                    }
+                }
+
+                case UserState.Names.REPOSITORY_SEARCH -> {
+
+                }
+
+                // todo : кастомная клавиатура ("Отмена")
+                case UserState.Names.REPOSITORY_ADD_SERVICE_NAME -> {
+                    try {
+                        dbPasswordRecordsBuilder.setServiceName(message.getChatId(), message.getText());
+                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboardWorker(this, update).start();
+                        return;
+                    }
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_LOGIN);
+                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_LOGIN));
+                }
+
+                // todo : кастомная клавиатура ("Отмена", "Сгенерировать пароль")
+                case UserState.Names.REPOSITORY_ADD_LOGIN -> {
+                    try {
+                        dbPasswordRecordsBuilder.setLogin(message.getChatId(), message.getText());
+                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboardWorker(this, update).start();
+                        return;
+                    }
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_PASSWORD);
+                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_PASSWORD));
+                }
+
+                // todo: кастомная клавиатура ("Отмена") + удалять пароль
+                case UserState.Names.REPOSITORY_ADD_PASSWORD -> {
+                    try {
+                        dbPasswordRecordsBuilder.setPassword(message.getChatId(), message.getText());
+                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboardWorker(this, update).start();
+                        return;
+                    }
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_COMMENT);
+                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_COMMENT));
+                }
+
+                // todo: кастомная клавиатура ("Отмена")
+                case UserState.Names.REPOSITORY_ADD_COMMENT -> {
+                    try {
+                        if (!message.getText().equals("-")) {
+                            dbPasswordRecordsBuilder.setComment(message.getChatId(), message.getText());
+                        } else {
+                            dbPasswordRecordsBuilder.setComment(message.getChatId(), "");
+                        }
+                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboardWorker(this, update).start();
+                        return;
+                    }
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+
+                    // добавить запись в базу данных
+                    try {
+                        handler.addPasswordRecord(dbPasswordRecordsBuilder.buildAndGet(message.getChatId()));
+                    } catch (SQLException e) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_NOT_ADDED));
+                        return;
+                    }
+                    execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_SUCCESSFULLY_ADDED));
+                    new RepositoryWorker(this, update).start();
                 }
             }
         }

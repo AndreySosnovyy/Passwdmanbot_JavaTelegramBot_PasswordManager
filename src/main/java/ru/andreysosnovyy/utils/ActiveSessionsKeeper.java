@@ -33,7 +33,7 @@ public class ActiveSessionsKeeper {
 
     // true - активная сессия / false - протухшая
     private boolean checkTimeout(long millis) {
-        return System.currentTimeMillis() - millis < 300_000;
+        return System.currentTimeMillis() - millis < 30_000;
     }
 
 

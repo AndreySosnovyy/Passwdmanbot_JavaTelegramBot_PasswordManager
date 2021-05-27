@@ -1,5 +1,7 @@
 package ru.andreysosnovyy.utils;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -20,29 +22,30 @@ public class DBPasswordRecordsBuilder {
     }
 
 
-    private class DBPasswordRecord {
+    @Getter
+    public class DBPasswordRecord {
 
-        public DBPasswordRecord(long userId) {
+        private DBPasswordRecord(long userId) {
             this.userId = userId;
             this.time = System.currentTimeMillis();
         }
 
-        public void setServiceName(String serviceName) {
+        private void setServiceName(String serviceName) {
             this.serviceName = serviceName;
             this.time = System.currentTimeMillis();
         }
 
-        public void setLogin(String login) {
+        private void setLogin(String login) {
             this.login = login;
             this.time = System.currentTimeMillis();
         }
 
-        public void setPassword(String password) {
+        private void setPassword(String password) {
             this.password = password;
             this.time = System.currentTimeMillis();
         }
 
-        public void setComment(String comment) {
+        private void setComment(String comment) {
             this.comment = comment;
             this.time = System.currentTimeMillis();
         }
@@ -57,7 +60,6 @@ public class DBPasswordRecordsBuilder {
 
 
     private final List<DBPasswordRecord> dbPasswordRecords = new ArrayList<>();
-
 
     public void addRecord(long userId) {
         dbPasswordRecords.add(new DBPasswordRecord(userId));
@@ -106,7 +108,17 @@ public class DBPasswordRecordsBuilder {
 
     // true - активная сессия / false - протухшая
     private boolean checkTimeout(long millis) {
-        return System.currentTimeMillis() - millis < 300_000;
+        return System.currentTimeMillis() - millis < 30_000;
+    } // todo: 150_000
+
+    public DBPasswordRecord buildAndGet(long userId) {
+        for (DBPasswordRecord record : dbPasswordRecords) {
+            if (record.getUserId() == userId) {
+                // todo: шифрование
+                return record;
+            }
+        }
+        return null;
     }
 
 

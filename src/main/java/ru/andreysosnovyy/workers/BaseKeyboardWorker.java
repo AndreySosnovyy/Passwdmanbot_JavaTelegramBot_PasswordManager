@@ -26,7 +26,6 @@ public class BaseKeyboardWorker extends Worker {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
-//        replyKeyboardMarkup.setOneTimeKeyboard(false);
         ArrayList<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
         firstKeyboardRow.add(Messages.VIEW_REPOSITORY);

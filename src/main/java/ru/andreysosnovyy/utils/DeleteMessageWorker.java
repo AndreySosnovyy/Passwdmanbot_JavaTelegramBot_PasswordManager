@@ -1,4 +1,4 @@
-package ru.andreysosnovyy.workers;
+package ru.andreysosnovyy.utils;
 
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;

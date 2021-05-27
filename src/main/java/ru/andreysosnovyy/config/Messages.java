@@ -27,6 +27,10 @@ public class Messages {
     private static final String BACK_EMOJI = Character.toString(0x21A9);
     private static final String SCROLL_EMOJI = Character.toString(0x1F4DC);
     private static final String SCISSORS_EMOJI = Character.toString(0x2702);
+    private static final String MAGNIFIER_EMOJI = Character.toString(0x1F50E);
+    private static final String BOOKMARK_TABS_EMOJI = Character.toString(0x1F4D1);
+    private static final String WARNING_EMOJI = Character.toString(0x26A0);
+    private static final String KEYBOARD_EMOJI = Character.toString(0x2328);
 
     // ============================================================================================================= //
 
@@ -44,6 +48,15 @@ public class Messages {
     public static final String CREATED_SUCCESSFUL = PARTY_POPPER_EMOJI + " | Мастер-пароль успешно создан!";
     public static final String ENTER_REPO_PASS = KEY_EMOJI + " | Введите свой мастер-пароль:";
     public static final String WRONG_REPO_PASS = NO_ENTRY_EMOJI + " | Неверный пароль!";
+    public static final String USE_REPO_MENU = BOOKMARK_TABS_EMOJI + " | Воспользуйтесь навигационным меню:";
+    public static final String ENTER_SERVICE_NAME = KEYBOARD_EMOJI + " | Введите название сервиса:";
+    public static final String ENTER_LOGIN = KEYBOARD_EMOJI + " | Введите логин:";
+    public static final String ENTER_PASSWORD = KEYBOARD_EMOJI + " | Введите пароль:";
+    public static final String ENTER_COMMENT = KEYBOARD_EMOJI + " | Введите комментарий ('-' если не требуется):";
+    public static final String SESSION_NOT_ACTIVE = WARNING_EMOJI + " | Сессия не активна!";
+    public static final String TIME_RAN_OUT = WARNING_EMOJI + " | Время на добавление вышло!";
+    public static final String RECORD_SUCCESSFULLY_ADDED = CHECK_EMOJI + " | Запись успешно добавлена!";
+    public static final String RECORD_NOT_ADDED = CROSS_MARK_EMOJI + " | Не удалось добавить запись! Попробуйте еще раз...";
 
     // ============================================================================================================= //
 
@@ -53,4 +66,7 @@ public class Messages {
     public static final String SETTINGS = GEAR_EMOJI + " Настройки";
     public static final String BACK = BACK_EMOJI + " Назад";
     public static final String ADD_NEW_PASSWORD = PLUS_EMOJI + " Добавить новый пароль";
+    public static final String SEARCH = MAGNIFIER_EMOJI + " Поиск";
+    public static final String DELETE_PASSWORD = MINUS_EMOJI + " Удалить пароль";
+    public static final String CANCEL = CROSS_MARK_EMOJI + " Отмена";
 }
