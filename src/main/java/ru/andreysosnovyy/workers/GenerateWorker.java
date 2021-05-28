@@ -1,16 +1,12 @@
 package ru.andreysosnovyy.workers;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.Bot;
-import ru.andreysosnovyy.DBHandler;
 import ru.andreysosnovyy.config.Messages;
-import ru.andreysosnovyy.tables.User;
-import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.utils.PasswordGenerator;
 
 import java.util.ArrayList;
@@ -21,8 +17,6 @@ public class GenerateWorker extends Worker {
     public GenerateWorker(Bot bot, Update update) {
         super(bot, update);
     }
-
-    DBHandler handler = new DBHandler();
 
     @Override
     public void run() {
@@ -66,8 +60,8 @@ public class GenerateWorker extends Worker {
     }
 
 
-    private String GeneratePassword(int length, boolean useDigits, boolean useLower,
-                                    boolean useUpper, boolean usePunctuation) {
+    public static String GeneratePassword(int length, boolean useDigits, boolean useLower,
+                                          boolean useUpper, boolean usePunctuation) {
         return new PasswordGenerator.PasswordGeneratorBuilder()
                 .useDigits(useDigits)
                 .useLower(useLower)
