@@ -31,11 +31,12 @@ public class Messages {
     private static final String BOOKMARK_TABS_EMOJI = Character.toString(0x1F4D1);
     private static final String WARNING_EMOJI = Character.toString(0x26A0);
     private static final String KEYBOARD_EMOJI = Character.toString(0x2328);
+    private static final String DOOR_EMOJI = Character.toString(0x1F6AA);
 
     // ============================================================================================================= //
 
     // сообщения от бота
-    public static final String USE_MENU = SCROLL_EMOJI + " | Воспользуйтесь вспомогательным меню:";
+    public static final String USE_MENU = BOOKMARK_TABS_EMOJI + " | Воспользуйтесь вспомогательным меню:";
     public static final String TAP_TO_CHOOSE = SCISSORS_EMOJI + " | Выберите один вариант, потом скопируйте его " +
             "(он удалится автоматически через 15 секунд)";
     public static final String CREATE_REPOSITORY_PASSWORD = EXCLAMATION_MARK_EMOJI +
@@ -48,7 +49,7 @@ public class Messages {
     public static final String CREATED_SUCCESSFUL = PARTY_POPPER_EMOJI + " | Мастер-пароль успешно создан!";
     public static final String ENTER_REPO_PASS = KEY_EMOJI + " | Введите свой мастер-пароль:";
     public static final String WRONG_REPO_PASS = NO_ENTRY_EMOJI + " | Неверный пароль!";
-    public static final String USE_REPO_MENU = BOOKMARK_TABS_EMOJI + " | Воспользуйтесь навигационным меню:";
+    public static final String USE_REPO_MENU = BOOKMARK_TABS_EMOJI + " | Воспользуйтесь навигационным меню по хранилищу:";
     public static final String ENTER_SERVICE_NAME = KEYBOARD_EMOJI + " | Введите название сервиса:";
     public static final String ENTER_LOGIN = KEYBOARD_EMOJI + " | Введите логин:";
     public static final String ENTER_PASSWORD = KEYBOARD_EMOJI + " | Введите пароль:";
@@ -65,7 +66,8 @@ public class Messages {
     public static final String GENERATE_PASSWORD = LOCK_WITH_INK_PEN_EMOJI + " Сгенерировать пароль";
     public static final String SETTINGS = GEAR_EMOJI + " Настройки";
     public static final String BACK = BACK_EMOJI + " Назад";
-    public static final String ADD_NEW_PASSWORD = PLUS_EMOJI + " Добавить новый пароль";
+    public static final String EXIT_REPO = DOOR_EMOJI + " Выйти из хранилища";
+    public static final String ADD_NEW_PASSWORD = PLUS_EMOJI + " Добавить новую запись";
     public static final String SEARCH = MAGNIFIER_EMOJI + " Поиск";
     public static final String DELETE_PASSWORD = MINUS_EMOJI + " Удалить пароль";
     public static final String CANCEL = CROSS_MARK_EMOJI + " Отмена";

@@ -3,20 +3,20 @@ package ru.andreysosnovyy;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.utils.*;
-import ru.andreysosnovyy.workers.BaseKeyboardWorker;
-import ru.andreysosnovyy.utils.DeleteMessageWorker;
+import ru.andreysosnovyy.utils.BaseKeyboard;
 import ru.andreysosnovyy.workers.GenerateWorker;
 import ru.andreysosnovyy.workers.RepositoryWorker;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -43,7 +43,8 @@ public class Bot extends TelegramLongPollingBot {
         // хранителя активных сессий и билдера записей в базу данных
         if (repoPassWitness == null) repoPassWitness = new RepoPassWitness();
         if (activeSessionsKeeper == null) activeSessionsKeeper = new ActiveSessionsKeeper();
-        if (dbPasswordRecordsBuilder == null) dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder();
+        if (dbPasswordRecordsBuilder == null)
+            dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder(activeSessionsKeeper);
 
         if (update.hasMessage() && update.getMessage().hasText()) {
             DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
@@ -80,16 +81,26 @@ public class Bot extends TelegramLongPollingBot {
                 return;
             }
 
+            // разметка для клавиатуры с кнопкой "отмена"
+            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+            replyKeyboardMarkup.setResizeKeyboard(true);
+            replyKeyboardMarkup.setOneTimeKeyboard(true);
+            ArrayList<KeyboardRow> keyboard = new ArrayList<>();
+            KeyboardRow firstKeyboardRow = new KeyboardRow();
+            firstKeyboardRow.add(Messages.CANCEL);
+            keyboard.add(firstKeyboardRow);
+            replyKeyboardMarkup.setKeyboard(keyboard);
+
             // поиск нужно обработчика по состоянию пользователя для полученного сообщения
             switch (userState) {
                 case UserState.Names.BASE_NO_REPOSITORY_PASSWORD -> {
                     long userId = message.getFrom().getId();
 
                     // Удаление пароля
-                    DeleteMessage deleteMessage = new DeleteMessage();
+                    org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage deleteMessage = new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage();
                     deleteMessage.setChatId(message.getChatId().toString());
                     deleteMessage.setMessageId(message.getMessageId());
-                    new DeleteMessageWorker(this, deleteMessage, 0).start();
+                    new DeleteMessage(this, deleteMessage, 0).start();
 
                     if (repoPassWitness.checkIfExists(userId)) { // если есть
                         if (repoPassWitness.checkUnconfirmedRepoPass(userId, message.getText())) { // если совпал
@@ -97,7 +108,7 @@ public class Bot extends TelegramLongPollingBot {
                             handler.addRepositoryPasswordHash(userId, hashedPassword); // добавить пароль
                             handler.setUserState(userId, UserState.Names.BASE); // сменить состояние пользователя
                             execute(new SendMessage(String.valueOf(userId), Messages.CREATED_SUCCESSFUL)); // уведомить
-                            new BaseKeyboardWorker(this, update).start(); // вывести клавиатуру
+                            new BaseKeyboard(this, update).start(); // вывести клавиатуру
                         } else { // есть, но не совпал
                             execute(new SendMessage(String.valueOf(userId), Messages.TRY_AGAIN_REPOSITORY_PASSWORD));
                         }
@@ -109,7 +120,7 @@ public class Bot extends TelegramLongPollingBot {
 
                 case UserState.Names.BASE -> {
                     if (message.getText().equals("/start")) {
-                        new BaseKeyboardWorker(this, update).start();
+                        new BaseKeyboard(this, update).start();
                     } else if (message.getText().equals(Messages.VIEW_REPOSITORY)) { // обработчик для хранилища
                         // запросить мастер-пароль
                         handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_PASS);
@@ -119,16 +130,17 @@ public class Bot extends TelegramLongPollingBot {
                     } else if (message.getText().equals(Messages.SETTINGS)) {
                         // обработчик для настроек
                         // todo: 1) изменить мастер пароль
-                        // todo: 2) удалить хранилище
+                        // todo: 2) забыла мастер-пароль
+                        // todo: 3) удалить хранилище
                     } else {
                         // если пришел пароль, то его надо будет удалить
                         if (PasswordGenerator.checkIfPassword(message.getText())) {
-                            new DeleteMessageWorker(this, new DeleteMessage(
+                            new DeleteMessage(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
                                     message.getChatId().toString(), message.getMessageId()),
                                     15_000).start();
                         }
                         // вернуть стартовую клавиатуру
-                        new BaseKeyboardWorker(this, update).start();
+                        new BaseKeyboard(this, update).start();
                     }
                 }
 
@@ -143,7 +155,7 @@ public class Bot extends TelegramLongPollingBot {
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
                     }
                     // удаление пароля
-                    new DeleteMessageWorker(this, new DeleteMessage(
+                    new DeleteMessage(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
                             message.getChatId().toString(), message.getMessageId()), 0).start();
                 }
 
@@ -153,19 +165,23 @@ public class Bot extends TelegramLongPollingBot {
                         if (message.getText().equals(Messages.ADD_NEW_PASSWORD)) {
                             dbPasswordRecordsBuilder.addRecord(message.getChatId());
                             handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
-                            execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_SERVICE_NAME));
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(message.getChatId().toString());
+                            sendMessage.setText(Messages.ENTER_SERVICE_NAME);
+                            sendMessage.setReplyMarkup(replyKeyboardMarkup);
+                            execute(sendMessage);
                         } else if (message.getText().equals(Messages.SEARCH)) {
 
                         } else if (message.getText().equals(Messages.BACK)) {
                             handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                            new BaseKeyboardWorker(this, update).start();
+                            new BaseKeyboard(this, update).start();
                         } else {
 
                         }
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboardWorker(this, update).start();
+                        new BaseKeyboard(this, update).start();
                     }
                 }
 
@@ -175,71 +191,101 @@ public class Bot extends TelegramLongPollingBot {
 
                 // todo : кастомная клавиатура ("Отмена")
                 case UserState.Names.REPOSITORY_ADD_SERVICE_NAME -> {
-                    try {
-                        dbPasswordRecordsBuilder.setServiceName(message.getChatId(), message.getText());
-                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                    if (activeSessionsKeeper.isActive(message.getChatId())) {
+                        if (message.getText().equals(Messages.CANCEL)) {
+                            dbPasswordRecordsBuilder.removeRecord(message.getChatId());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                            new RepositoryWorker(this, update).start();
+                        } else {
+                            dbPasswordRecordsBuilder.setServiceName(message.getChatId(), message.getText());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_LOGIN);
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(message.getChatId().toString());
+                            sendMessage.setText(Messages.ENTER_LOGIN);
+                            sendMessage.setReplyMarkup(replyKeyboardMarkup);
+                            execute(sendMessage);
+                        }
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboardWorker(this, update).start();
-                        return;
+                        new BaseKeyboard(this, update).start();
                     }
-                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_LOGIN);
-                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_LOGIN));
                 }
 
                 // todo : кастомная клавиатура ("Отмена", "Сгенерировать пароль")
                 case UserState.Names.REPOSITORY_ADD_LOGIN -> {
-                    try {
-                        dbPasswordRecordsBuilder.setLogin(message.getChatId(), message.getText());
-                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                    if (activeSessionsKeeper.isActive(message.getChatId())) {
+                        if (message.getText().equals(Messages.CANCEL)) {
+                            dbPasswordRecordsBuilder.removeRecord(message.getChatId());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                            new RepositoryWorker(this, update).start();
+                        } else {
+                            dbPasswordRecordsBuilder.setLogin(message.getChatId(), message.getText());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_PASSWORD);
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(message.getChatId().toString());
+                            sendMessage.setText(Messages.ENTER_PASSWORD);
+                            ArrayList<KeyboardRow> newKeyboard = new ArrayList<>();
+                            KeyboardRow newFirstKeyboardRow = new KeyboardRow();
+                            firstKeyboardRow.add(Messages.GENERATE_PASSWORD);
+                            firstKeyboardRow.add(Messages.CANCEL);
+                            keyboard.add(newFirstKeyboardRow);
+                            replyKeyboardMarkup.setKeyboard(newKeyboard);
+                            execute(sendMessage);
+                        }
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboardWorker(this, update).start();
-                        return;
+                        new BaseKeyboard(this, update).start();
                     }
-                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_PASSWORD);
-                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_PASSWORD));
                 }
 
                 // todo: кастомная клавиатура ("Отмена") + удалять пароль
                 case UserState.Names.REPOSITORY_ADD_PASSWORD -> {
-                    try {
-                        dbPasswordRecordsBuilder.setPassword(message.getChatId(), message.getText());
-                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                    if (activeSessionsKeeper.isActive(message.getChatId())) {
+                        if (message.getText().equals(Messages.CANCEL)) {
+                            dbPasswordRecordsBuilder.removeRecord(message.getChatId());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                            new RepositoryWorker(this, update).start();
+                        } else {
+                            dbPasswordRecordsBuilder.setPassword(message.getChatId(), message.getText());
+                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_COMMENT);
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(message.getChatId().toString());
+                            sendMessage.setText(Messages.ENTER_COMMENT);
+                            sendMessage.setReplyMarkup(replyKeyboardMarkup);
+                            execute(sendMessage);
+                        }
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboardWorker(this, update).start();
-                        return;
+                        new BaseKeyboard(this, update).start();
                     }
-                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_COMMENT);
-                    execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_COMMENT));
                 }
 
                 // todo: кастомная клавиатура ("Отмена")
                 case UserState.Names.REPOSITORY_ADD_COMMENT -> {
-                    try {
-                        if (!message.getText().equals("-")) {
-                            dbPasswordRecordsBuilder.setComment(message.getChatId(), message.getText());
+                    if (activeSessionsKeeper.isActive(message.getChatId())) {
+                        if (message.getText().equals(Messages.CANCEL)) {
+                            dbPasswordRecordsBuilder.removeRecord(message.getChatId());
                         } else {
-                            dbPasswordRecordsBuilder.setComment(message.getChatId(), "");
+                            if (!message.getText().equals("-")) {
+                                dbPasswordRecordsBuilder.setComment(message.getChatId(), message.getText());
+                            }
+                            // добавить запись в базу данных
+                            if (handler.addPasswordRecord(dbPasswordRecordsBuilder.buildAndGet(message.getChatId()))) {
+                                execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_SUCCESSFULLY_ADDED));
+                            } else {
+                                execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_NOT_ADDED));
+                            }
                         }
-                    } catch (DBPasswordRecordsBuilder.NoActiveSessionFoundException e) {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.TIME_RAN_OUT));
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                        new RepositoryWorker(this, update).start();
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboardWorker(this, update).start();
-                        return;
+                        new BaseKeyboard(this, update).start();
                     }
-                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-
-                    // добавить запись в базу данных
-                    try {
-                        handler.addPasswordRecord(dbPasswordRecordsBuilder.buildAndGet(message.getChatId()));
-                    } catch (SQLException e) {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_NOT_ADDED));
-                        return;
-                    }
-                    execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_SUCCESSFULLY_ADDED));
-                    new RepositoryWorker(this, update).start();
                 }
             }
         }

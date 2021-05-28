@@ -1,4 +1,4 @@
-package ru.andreysosnovyy.workers;
+package ru.andreysosnovyy.utils;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -7,12 +7,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.Bot;
 import ru.andreysosnovyy.config.Messages;
+import ru.andreysosnovyy.workers.Worker;
 
 import java.util.ArrayList;
 
-public class BaseKeyboardWorker extends Worker {
+public class BaseKeyboard extends Worker {
 
-    public BaseKeyboardWorker(Bot bot, Update update) {
+    public BaseKeyboard(Bot bot, Update update) {
         super(bot, update);
     }
 

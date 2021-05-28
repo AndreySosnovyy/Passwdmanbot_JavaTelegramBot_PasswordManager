@@ -13,7 +13,7 @@ public abstract class Worker extends Thread {
     protected Update update;
     protected UserState userState;
 
-    Worker(Bot bot, Update update) {
+    protected Worker(Bot bot, Update update) {
         this.bot = bot;
         this.update = update;
         // логирование

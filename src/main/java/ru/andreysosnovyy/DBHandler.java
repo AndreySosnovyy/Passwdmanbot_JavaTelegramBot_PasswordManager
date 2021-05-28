@@ -153,18 +153,27 @@ public class DBHandler extends DBConfig {
 
 
     // добавить новый пароль для пользователя
-    public void addPasswordRecord(DBPasswordRecordsBuilder.DBPasswordRecord record) throws SQLException {
+    public boolean addPasswordRecord(DBPasswordRecordsBuilder.DBPasswordRecord record) {
         String request = "INSERT INTO " + Password.Table.TABLE_NAME + " (" +
                 Password.Table.USER_ID + "," + Password.Table.SERVICE_NAME + "," +
                 Password.Table.LOGIN + "," + Password.Table.PASSWORD + "," +
                 Password.Table.COMMENT + ")" + "VALUES(?,?,?,?,?)";
-        PreparedStatement preparedStatement = getConnection().prepareStatement(request);
-        preparedStatement.setLong(1, record.getUserId());
-        preparedStatement.setString(2, record.getServiceName());
-        preparedStatement.setString(3, record.getLogin());
-        preparedStatement.setString(4, record.getPassword());
-        preparedStatement.setString(5, record.getComment());
-        preparedStatement.executeUpdate();
+        try {
+
+            if (record == null) return false;
+
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, record.getUserId());
+            preparedStatement.setString(2, record.getServiceName());
+            preparedStatement.setString(3, record.getLogin());
+            preparedStatement.setString(4, record.getPassword());
+            preparedStatement.setString(5, record.getComment());
+            preparedStatement.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 

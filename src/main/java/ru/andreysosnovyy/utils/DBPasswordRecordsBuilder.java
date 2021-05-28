@@ -1,6 +1,8 @@
 package ru.andreysosnovyy.utils;
 
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,44 +12,20 @@ import java.util.concurrent.TimeUnit;
 
 public class DBPasswordRecordsBuilder {
 
-    public DBPasswordRecordsBuilder() {
+    ActiveSessionsKeeper activeSessionsKeeper;
+
+    public DBPasswordRecordsBuilder(ActiveSessionsKeeper activeSessionsKeeper) {
+        this.activeSessionsKeeper = activeSessionsKeeper;
         cleaner();
     }
 
 
-    public static class NoActiveSessionFoundException extends Exception {
-        public NoActiveSessionFoundException(long userId) {
-            super("No active session for user " + userId);
-        }
-    }
-
-
     @Getter
+    @Setter
     public class DBPasswordRecord {
 
         private DBPasswordRecord(long userId) {
             this.userId = userId;
-            this.time = System.currentTimeMillis();
-        }
-
-        private void setServiceName(String serviceName) {
-            this.serviceName = serviceName;
-            this.time = System.currentTimeMillis();
-        }
-
-        private void setLogin(String login) {
-            this.login = login;
-            this.time = System.currentTimeMillis();
-        }
-
-        private void setPassword(String password) {
-            this.password = password;
-            this.time = System.currentTimeMillis();
-        }
-
-        private void setComment(String comment) {
-            this.comment = comment;
-            this.time = System.currentTimeMillis();
         }
 
         private final long userId;
@@ -55,7 +33,6 @@ public class DBPasswordRecordsBuilder {
         private String login;
         private String password;
         private String comment;
-        private long time;
     }
 
 
@@ -65,51 +42,57 @@ public class DBPasswordRecordsBuilder {
         dbPasswordRecords.add(new DBPasswordRecord(userId));
     }
 
-    public void setServiceName(long userId, String serviceName) throws NoActiveSessionFoundException {
+    public void removeRecord(long userId) {
+        dbPasswordRecords.removeIf(record -> record.getUserId() == userId);
+    }
+
+    public void setServiceName(long userId, String serviceName) throws Exception {
         for (DBPasswordRecord record : dbPasswordRecords) {
-            if (record.userId == userId && checkTimeout(record.time)) {
+            if (record.userId == userId) {
                 record.setServiceName(serviceName);
+                activeSessionsKeeper.prolongSession(userId);
+                return;
             } else {
-                throw new NoActiveSessionFoundException(userId);
+                throw new Exception("Unable to set service name for user " + userId);
             }
         }
     }
 
-    public void setLogin(long userId, String login) throws NoActiveSessionFoundException {
+    public void setLogin(long userId, String login) throws Exception {
         for (DBPasswordRecord record : dbPasswordRecords) {
-            if (record.userId == userId && checkTimeout(record.time)) {
+            if (record.userId == userId) {
                 record.setLogin(login);
+                activeSessionsKeeper.prolongSession(userId);
+                return;
             } else {
-                throw new NoActiveSessionFoundException(userId);
+                throw new Exception("Unable to set login for user " + userId);
             }
         }
     }
 
-    public void setPassword(long userId, String password) throws NoActiveSessionFoundException {
+    public void setPassword(long userId, String password) throws Exception {
         for (DBPasswordRecord record : dbPasswordRecords) {
-            if (record.userId == userId && checkTimeout(record.time)) {
+            if (record.userId == userId) {
                 record.setPassword(password);
+                activeSessionsKeeper.prolongSession(userId);
+                return;
             } else {
-                throw new NoActiveSessionFoundException(userId);
+                throw new Exception("Unable to set password for user " + userId);
             }
         }
     }
 
-    public void setComment(long userId, String comment) throws NoActiveSessionFoundException {
+    public void setComment(long userId, String comment) throws Exception {
         for (DBPasswordRecord record : dbPasswordRecords) {
-            if (record.userId == userId && checkTimeout(record.time)) {
+            if (record.userId == userId) {
                 record.setComment(comment);
+                activeSessionsKeeper.prolongSession(userId);
+                return;
             } else {
-                throw new NoActiveSessionFoundException(userId);
+                throw new Exception("Unable to set comment for user " + userId);
             }
         }
     }
-
-
-    // true - активная сессия / false - протухшая
-    private boolean checkTimeout(long millis) {
-        return System.currentTimeMillis() - millis < 30_000;
-    } // todo: 150_000
 
     public DBPasswordRecord buildAndGet(long userId) {
         for (DBPasswordRecord record : dbPasswordRecords) {
@@ -121,10 +104,9 @@ public class DBPasswordRecordsBuilder {
         return null;
     }
 
-
     private void cleaner() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> dbPasswordRecords.removeIf(record ->
-                !checkTimeout(record.time)), 0, 5_000, TimeUnit.MILLISECONDS);
+                !activeSessionsKeeper.isActive(record.getUserId())), 0, 5_000, TimeUnit.MILLISECONDS);
     }
 }

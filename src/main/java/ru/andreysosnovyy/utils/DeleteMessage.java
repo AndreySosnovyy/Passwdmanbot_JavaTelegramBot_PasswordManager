@@ -1,16 +1,15 @@
 package ru.andreysosnovyy.utils;
 
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.Bot;
 
-public class DeleteMessageWorker extends Thread {
+public class DeleteMessage extends Thread {
 
     private final Bot bot;
-    private final DeleteMessage deleteMessage;
+    private final org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage deleteMessage;
     private final long timeout;
 
-    public DeleteMessageWorker(Bot bot, DeleteMessage deleteMessage, long timeout) {
+    public DeleteMessage(Bot bot, org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage deleteMessage, long timeout) {
         this.deleteMessage = deleteMessage;
         this.timeout = timeout;
         this.bot = bot;

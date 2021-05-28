@@ -30,7 +30,7 @@ public class RepositoryWorker extends Worker {
         firstKeyboardRow.add(Messages.SEARCH);
         firstKeyboardRow.add(Messages.ADD_NEW_PASSWORD);
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(Messages.BACK);
+        secondKeyboardRow.add(Messages.EXIT_REPO);
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
         replyKeyboardMarkup.setKeyboard(keyboard);

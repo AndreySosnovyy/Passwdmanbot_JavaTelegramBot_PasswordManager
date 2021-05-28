@@ -23,7 +23,7 @@ public class ActiveSessionsKeeper {
     }
 
 
-    private final List<ActiveSession> activeSessions = new ArrayList<>();
+    public final List<ActiveSession> activeSessions = new ArrayList<>();
 
 
     public void addActiveSession(long userId) {
@@ -33,8 +33,8 @@ public class ActiveSessionsKeeper {
 
     // true - активная сессия / false - протухшая
     private boolean checkTimeout(long millis) {
-        return System.currentTimeMillis() - millis < 30_000;
-    }
+        return System.currentTimeMillis() - millis < 300_000;
+    } //
 
 
     public boolean isActive(long userId) {
