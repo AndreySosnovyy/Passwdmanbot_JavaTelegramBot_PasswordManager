@@ -7,8 +7,6 @@ import java.util.Random;
 
 public final class PasswordGenerator {
 
-    // todo: добавить возможность исключать похожие символы
-
     public static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
     public static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String DIGITS = "0123456789";

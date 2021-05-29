@@ -37,7 +37,6 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     @Override
     public void onUpdateReceived(Update update) {
-        // todo: логирование
 
         // инициализация объектов для работы с неподтвержденными паролями от хранилищ,
         // хранителя активных сессий и билдера записей в базу данных
@@ -130,9 +129,8 @@ public class Bot extends TelegramLongPollingBot {
                         new GenerateWorker(this, update).start();
                     } else if (message.getText().equals(Messages.SETTINGS)) {
                         // обработчик для настроек
-                        // todo: 1) изменить мастер пароль
-                        // todo: 2) забыла мастер-пароль
-                        // todo: 3) удалить хранилище
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS);
+                        new SettingsKeyboard(this, update).start();
                     } else {
                         // если пришел пароль, то его надо будет удалить
                         if (PasswordGenerator.checkIfPassword(message.getText())) {
@@ -295,9 +293,19 @@ public class Bot extends TelegramLongPollingBot {
                         new BaseKeyboard(this, update).start();
                     }
                 }
+
+                case UserState.Names.SETTINGS -> {
+                    if (message.getText().equals(Messages.CHANGE_MASTER_PASS)) {
+
+                    } else if (message.getText().equals(Messages.DELETE_REPO)) {
+
+                    } else if (message.getText().equals(Messages.RESTORE_MASTER_PASS)) {
+
+                    } else {
+
+                    }
+                }
             }
         }
     }
 }
-
-

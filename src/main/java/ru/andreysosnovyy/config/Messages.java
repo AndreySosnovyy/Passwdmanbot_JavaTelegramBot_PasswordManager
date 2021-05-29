@@ -32,6 +32,8 @@ public class Messages {
     private static final String WARNING_EMOJI = Character.toString(0x26A0);
     private static final String KEYBOARD_EMOJI = Character.toString(0x2328);
     private static final String DOOR_EMOJI = Character.toString(0x1F6AA);
+    private static final String PENCIL_EMOJI = Character.toString(0x270F);
+    private static final String QUESTION_EMOJI = Character.toString(0x2753);
 
     // ============================================================================================================= //
 
@@ -58,6 +60,7 @@ public class Messages {
     public static final String TIME_RAN_OUT = WARNING_EMOJI + " | Время на добавление вышло!";
     public static final String RECORD_SUCCESSFULLY_ADDED = CHECK_EMOJI + " | Запись успешно добавлена!";
     public static final String RECORD_NOT_ADDED = CROSS_MARK_EMOJI + " | Не удалось добавить запись! Попробуйте еще раз...";
+    public static final String CONFIRM_DELETE_REPO = QUESTION_EMOJI + " | Вы уверены, что хотите удалить хранилище (все свои пароли)?";
 
     // ============================================================================================================= //
 
@@ -71,4 +74,7 @@ public class Messages {
     public static final String SEARCH = MAGNIFIER_EMOJI + " Поиск";
     public static final String DELETE_PASSWORD = MINUS_EMOJI + " Удалить пароль";
     public static final String CANCEL = CROSS_MARK_EMOJI + " Отмена";
+    public static final String CHANGE_MASTER_PASS = PENCIL_EMOJI + " Изменить мастер-пароль";
+    public static final String RESTORE_MASTER_PASS = KEY_EMOJI + " Восстановить мастер-пароль";
+    public static final String DELETE_REPO = CROSS_MARK_EMOJI + " Удалить хранилище";
 }
