@@ -5,6 +5,7 @@ import ru.andreysosnovyy.tables.Password;
 import ru.andreysosnovyy.tables.RepositoryPassword;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
+import ru.andreysosnovyy.utils.Cryption;
 import ru.andreysosnovyy.utils.DBPasswordRecordsBuilder;
 
 import java.sql.*;
@@ -21,15 +22,16 @@ public class DBHandler extends DBConfig {
     public void addNewUser(User user) {
         String request = "INSERT INTO " + User.Table.TABLE_NAME + " (" +
                 User.Table.USER_ID + "," + User.Table.FIRST_NAME + "," + User.Table.LAST_NAME + "," +
-                User.Table.USERNAME + ")" + "VALUES(?,?,?,?)";
+                User.Table.USERNAME + "," + User.Table.SECRET_KEY + ")" + "VALUES(?,?,?,?,?)";
         try {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setLong(1, user.getId());
             preparedStatement.setString(2, user.getFirstName());
             preparedStatement.setString(3, user.getLastName());
             preparedStatement.setString(4, user.getUsername());
+            preparedStatement.setString(5, Cryption.createSecretKeyString());
             preparedStatement.executeUpdate();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -174,6 +176,30 @@ public class DBHandler extends DBConfig {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public String getUserSecretKey(long userId) {
+        ResultSet resultSet = null;
+        String request = "SELECT " + User.Table.SECRET_KEY +
+                " FROM " + User.Table.TABLE_NAME + " WHERE " +
+                User.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            resultSet = preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            assert resultSet != null;
+            if (resultSet.next()) {
+                return resultSet.getString(User.Table.SECRET_KEY);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

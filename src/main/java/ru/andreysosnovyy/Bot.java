@@ -47,6 +47,7 @@ public class Bot extends TelegramLongPollingBot {
             dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder(activeSessionsKeeper);
 
         if (update.hasMessage() && update.getMessage().hasText()) {
+
             DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
             String userState = handler.getUserState(update.getMessage().getChatId()); // состояние пользователя
             Message message = update.getMessage(); // сообщение из апдейта
@@ -203,6 +204,8 @@ public class Bot extends TelegramLongPollingBot {
                             sendMessage.setText(Messages.ENTER_LOGIN);
                             sendMessage.setReplyMarkup(replyKeyboardMarkup);
                             execute(sendMessage);
+                            new DeleteMessageUtil(this, new DeleteMessage(
+                                    message.getChatId().toString(), message.getMessageId()), 60_000).start();
                         }
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
@@ -231,6 +234,8 @@ public class Bot extends TelegramLongPollingBot {
                             replyKeyboardMarkup.setKeyboard(newKeyboard);
                             sendMessage.setReplyMarkup(replyKeyboardMarkup);
                             execute(sendMessage);
+                            new DeleteMessageUtil(this, new DeleteMessage(
+                                    message.getChatId().toString(), message.getMessageId()), 60_000).start();
                         }
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
@@ -248,7 +253,7 @@ public class Bot extends TelegramLongPollingBot {
                             return;
                         } else if (message.getText().equals(Messages.GENERATE_PASSWORD)) {
                             dbPasswordRecordsBuilder.setPassword(message.getChatId(),
-                                    GenerateWorker.GeneratePassword(16, true, true, true,true));
+                                    GenerateWorker.GeneratePassword(16, true, true, true, true));
                         } else {
                             dbPasswordRecordsBuilder.setPassword(message.getChatId(), message.getText());
                             new DeleteMessageUtil(this, new DeleteMessage(
@@ -272,15 +277,15 @@ public class Bot extends TelegramLongPollingBot {
                         if (message.getText().equals(Messages.CANCEL)) {
                             dbPasswordRecordsBuilder.removeRecord(message.getChatId());
                         } else {
-                            if (!message.getText().equals("-")) {
-                                dbPasswordRecordsBuilder.setComment(message.getChatId(), message.getText());
-                            }
+                            dbPasswordRecordsBuilder.setComment(message.getChatId(), message.getText());
                             // добавить запись в базу данных
                             if (handler.addPasswordRecord(dbPasswordRecordsBuilder.buildAndGet(message.getChatId()))) {
                                 execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_SUCCESSFULLY_ADDED));
                             } else {
                                 execute(new SendMessage(message.getChatId().toString(), Messages.RECORD_NOT_ADDED));
                             }
+                            new DeleteMessageUtil(this, new DeleteMessage(
+                                    message.getChatId().toString(), message.getMessageId()), 60_000).start();
                         }
                         handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
                         new RepositoryWorker(this, update).start();

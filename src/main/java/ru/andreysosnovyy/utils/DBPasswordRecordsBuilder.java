@@ -2,8 +2,9 @@ package ru.andreysosnovyy.utils;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+import ru.andreysosnovyy.DBHandler;
 
+import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -19,6 +20,7 @@ public class DBPasswordRecordsBuilder {
         cleaner();
     }
 
+    DBHandler handler = new DBHandler();
 
     @Getter
     @Setter
@@ -97,7 +99,23 @@ public class DBPasswordRecordsBuilder {
     public DBPasswordRecord buildAndGet(long userId) {
         for (DBPasswordRecord record : dbPasswordRecords) {
             if (record.getUserId() == userId) {
-                // todo: шифрование
+                try { // шифрование
+                    SecretKey secretKey = Cryption.getSecretKeyFromString(handler.getUserSecretKey(record.getUserId()));
+                    record.setServiceName(new String(
+                            Cryption.do_AESEncryption(record.getServiceName(), secretKey,
+                                    Cryption.createInitializationVector())));
+                    record.setLogin(new String(
+                            Cryption.do_AESEncryption(record.getLogin(), secretKey,
+                                    Cryption.createInitializationVector())));
+                    record.setPassword(new String(
+                            Cryption.do_AESEncryption(record.getPassword(), secretKey,
+                                    Cryption.createInitializationVector())));
+                    record.setComment(new String(
+                            Cryption.do_AESEncryption(record.getComment(), secretKey,
+                                    Cryption.createInitializationVector())));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 return record;
             }
         }
