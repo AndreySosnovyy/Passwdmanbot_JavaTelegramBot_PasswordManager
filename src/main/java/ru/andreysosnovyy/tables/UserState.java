@@ -36,8 +36,9 @@ public class UserState {
         public static final String REPOSITORY_ADD_COMMENT = "repository_add_comment"; // ожидание ввода комментария
 
         public static final String SETTINGS = "settings"; // ожидание четкой инструкции настроек
+        public static final String SETTINGS_ENTER_REPO_PASS = "settings_enter_repo_pass"; // ожидание ввода мастер-пароля
         public static final String SETTINGS_DELETE_REPO = "settings_delete_repo"; // надо подтвердить удаление
-        public static final String SETTINGS_CHANGE_MASTER_PASS_CONFIRM = "settings_change_master_pass_confirm"; // подтвердить мастер-пароль
+        public static final String SETTINGS_CHANGE_MASTER_PASS = "settings_change_master_pass";
         public static final String SETTINGS_RESTORE_PASS = "settings_restore_pass"; // пока нет
     }
 }

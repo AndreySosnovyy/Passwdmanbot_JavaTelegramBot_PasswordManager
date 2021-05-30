@@ -34,6 +34,8 @@ public class Messages {
     private static final String DOOR_EMOJI = Character.toString(0x1F6AA);
     private static final String PENCIL_EMOJI = Character.toString(0x270F);
     private static final String QUESTION_EMOJI = Character.toString(0x2753);
+    private static final String WAVING_HAND_EMOJI = Character.toString(0x1F44B);
+    private static final String MAN_SHRUGGING_EMOJI = Character.toString(0x1F937);
 
     // ============================================================================================================= //
 
@@ -61,6 +63,12 @@ public class Messages {
     public static final String RECORD_SUCCESSFULLY_ADDED = CHECK_EMOJI + " | Запись успешно добавлена!";
     public static final String RECORD_NOT_ADDED = CROSS_MARK_EMOJI + " | Не удалось добавить запись! Попробуйте еще раз...";
     public static final String CONFIRM_DELETE_REPO = QUESTION_EMOJI + " | Вы уверены, что хотите удалить хранилище (все свои пароли)?";
+    public static final String ENTER_NEW_REPO_PASS = KEY_EMOJI + " | Введите новый мастер-пароль для Вашего хранилища:";
+    public static final String REPO_PASS_CHANGED = CHECK_EMOJI + " | Ваш мастер-пароль успешно изменен";
+    public static final String SEE_YOU = WAVING_HAND_EMOJI + " | Ваше хранилище удалено. Надеюсь, увидимся снова!";
+    public static final String CONTACT_ADMIN = MAN_SHRUGGING_EMOJI + " | К сожалению, пока нельзя восстановить мастер-пароль " +
+            "в автоматическом режиме. Чтобы сделать это в ручном режиме, напишите администратору t.me/andreysosnovyy. " +
+            "Приносим извинения за неудобства. Мы уже работаем над автоматическим режимом восстановления мастер-пароля";
 
     // ============================================================================================================= //
 
@@ -77,4 +85,6 @@ public class Messages {
     public static final String CHANGE_MASTER_PASS = PENCIL_EMOJI + " Изменить мастер-пароль";
     public static final String RESTORE_MASTER_PASS = KEY_EMOJI + " Восстановить мастер-пароль";
     public static final String DELETE_REPO = CROSS_MARK_EMOJI + " Удалить хранилище";
+    public static final String YES = "Да";
+    public static final String EXIT_SETTINGS = DOOR_EMOJI + " Покинуть настройки";
 }

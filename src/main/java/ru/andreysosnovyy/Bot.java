@@ -129,8 +129,8 @@ public class Bot extends TelegramLongPollingBot {
                         new GenerateWorker(this, update).start();
                     } else if (message.getText().equals(Messages.SETTINGS)) {
                         // обработчик дл€ настроек
-                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS);
-                        new SettingsKeyboard(this, update).start();
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS_ENTER_REPO_PASS);
+                        execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_REPO_PASS));
                     } else {
                         // если пришел пароль, то его надо будет удалить
                         if (PasswordGenerator.checkIfPassword(message.getText())) {
@@ -294,13 +294,63 @@ public class Bot extends TelegramLongPollingBot {
                     }
                 }
 
+                case UserState.Names.SETTINGS_ENTER_REPO_PASS -> {
+                    // проверка хэша мастер-парол€
+                    if (Hash.checkPassword(message.getText(), handler.getRepositoryPasswordHash(message.getChatId()))) {
+                        activeSessionsKeeper.addActiveSettingsSession(message.getChatId()); // активировать сессию
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS); // сменить состо€ние
+                        new SettingsKeyboard(this, update).start(); // запустить воркер
+                    } else {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.WRONG_REPO_PASS));
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                    }
+                    // удаление парол€
+                    new DeleteMessageUtil(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
+                            message.getChatId().toString(), message.getMessageId()), 0).start();
+                }
+
                 case UserState.Names.SETTINGS -> {
                     if (message.getText().equals(Messages.CHANGE_MASTER_PASS)) {
-
+                        execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_NEW_REPO_PASS));
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS_CHANGE_MASTER_PASS);
                     } else if (message.getText().equals(Messages.DELETE_REPO)) {
-
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS_DELETE_REPO);
+                        SendMessage sendMessage = new SendMessage();
+                        sendMessage.setChatId(message.getChatId().toString());
+                        sendMessage.setText(Messages.CONFIRM_DELETE_REPO);
+                        ReplyKeyboardMarkup newreplyKeyboardMarkup = new ReplyKeyboardMarkup();
+                        newreplyKeyboardMarkup.setResizeKeyboard(true);
+                        newreplyKeyboardMarkup.setOneTimeKeyboard(true);
+                        ArrayList<KeyboardRow> newkeyboard = new ArrayList<>();
+                        KeyboardRow newfirstKeyboardRow = new KeyboardRow();
+                        newfirstKeyboardRow.add(Messages.CANCEL);
+                        newfirstKeyboardRow.add(Messages.YES);
+                        newkeyboard.add(newfirstKeyboardRow);
+                        newreplyKeyboardMarkup.setKeyboard(newkeyboard);
+                        sendMessage.setReplyMarkup(newreplyKeyboardMarkup);
+                        execute(sendMessage);
                     } else if (message.getText().equals(Messages.RESTORE_MASTER_PASS)) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.CONTACT_ADMIN));
+                    } else if (message.getText().equals(Messages.EXIT_SETTINGS)) {
+                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
+                        new BaseKeyboard(this, update).start();
+                    }
+                }
 
+                case UserState.Names.SETTINGS_CHANGE_MASTER_PASS -> {
+                    handler.changeRepoPass(message.getChatId(), Hash.getHash(message.getText()));
+                    handler.setUserState(message.getChatId(), UserState.Names.SETTINGS);
+                    execute(new SendMessage(message.getChatId().toString(), Messages.REPO_PASS_CHANGED));
+                    new SettingsKeyboard(this, update).start();
+                }
+
+                case UserState.Names.SETTINGS_DELETE_REPO -> {
+                    if (message.getText().equals(Messages.YES)) {
+                        handler.deleteRepo(message.getChatId());
+                        execute(new SendMessage(message.getChatId().toString(), Messages.SEE_YOU));
+                    } else if (message.getText().equals(Messages.CANCEL)) {
+                        handler.setUserState(message.getChatId(), UserState.Names.SETTINGS);
+                        new SettingsKeyboard(this, update).start();
                     } else {
 
                     }

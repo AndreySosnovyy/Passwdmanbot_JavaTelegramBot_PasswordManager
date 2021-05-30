@@ -203,6 +203,34 @@ public class DBHandler extends DBConfig {
     }
 
 
+    public void changeRepoPass(long userId, String newPass) {
+        String request = "UPDATE " + RepositoryPassword.Table.TABLE_NAME +
+                " SET " + RepositoryPassword.Table.REPOSITORY_PASSWORD + "=?" +
+                " WHERE " + RepositoryPassword.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setString(1, newPass);
+            preparedStatement.setLong(2, userId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void deleteRepo(long userId) {
+        String request = "DELETE FROM " + User.Table.TABLE_NAME + " WHERE " +
+                User.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     // для админа
     public void clearDB() {
         String request = "DELETE FROM users WHERE `id` > 0";

@@ -33,6 +33,7 @@ public class SettingsKeyboard extends Worker {
         firstKeyboardRow.add(Messages.RESTORE_MASTER_PASS);
         KeyboardRow secondKeyboardRow = new KeyboardRow();
         secondKeyboardRow.add(Messages.DELETE_REPO);
+        secondKeyboardRow.add(Messages.EXIT_SETTINGS);
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
         replyKeyboardMarkup.setKeyboard(keyboard);

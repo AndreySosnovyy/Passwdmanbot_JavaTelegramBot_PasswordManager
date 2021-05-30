@@ -24,6 +24,7 @@ public class ActiveSessionsKeeper {
 
 
     public final List<ActiveSession> activeSessions = new ArrayList<>();
+    public final List<ActiveSession> activeSettingsSessions = new ArrayList<>();
 
 
     public void addActiveSession(long userId) {
@@ -31,14 +32,28 @@ public class ActiveSessionsKeeper {
     }
 
 
+    public void addActiveSettingsSession(long userId) {
+        activeSessions.add(new ActiveSession(userId, System.currentTimeMillis()));
+    }
+
+
     // true - активная сессия / false - протухшая
     private boolean checkTimeout(long millis) {
         return System.currentTimeMillis() - millis < 300_000;
-    } //
+    }
 
 
     public boolean isActive(long userId) {
         for (ActiveSession session : activeSessions) {
+            if (session.userId == userId && checkTimeout(session.time)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isActiveSettings(long userId) {
+        for (ActiveSession session : activeSettingsSessions) {
             if (session.userId == userId && checkTimeout(session.time)) {
                 return true;
             }
@@ -56,10 +71,21 @@ public class ActiveSessionsKeeper {
         }
     }
 
+    public void prolongSettingsSession(long userId) {
+        for (ActiveSession session : activeSettingsSessions) {
+            if (session.userId == userId) {
+                session.time = System.currentTimeMillis();
+                return;
+            }
+        }
+    }
+
 
     private void cleaner() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> activeSessions.removeIf(session ->
-                !checkTimeout(session.time)), 0, 5_000, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(() -> {
+            activeSessions.removeIf(session -> !checkTimeout(session.time));
+            activeSettingsSessions.removeIf(session -> !checkTimeout(session.time));
+        }, 0, 5_000, TimeUnit.MILLISECONDS);
     }
 }
