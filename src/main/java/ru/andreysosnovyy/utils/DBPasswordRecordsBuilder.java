@@ -102,17 +102,13 @@ public class DBPasswordRecordsBuilder {
                 try { // шифрование
                     SecretKey secretKey = Cryption.getSecretKeyFromString(handler.getUserSecretKey(record.getUserId()));
                     record.setServiceName(new String(
-                            Cryption.do_AESEncryption(record.getServiceName(), secretKey,
-                                    Cryption.createInitializationVector())));
+                            Cryption.do_AESEncryption(record.getServiceName(), secretKey)));
                     record.setLogin(new String(
-                            Cryption.do_AESEncryption(record.getLogin(), secretKey,
-                                    Cryption.createInitializationVector())));
+                            Cryption.do_AESEncryption(record.getLogin(), secretKey)));
                     record.setPassword(new String(
-                            Cryption.do_AESEncryption(record.getPassword(), secretKey,
-                                    Cryption.createInitializationVector())));
+                            Cryption.do_AESEncryption(record.getPassword(), secretKey)));
                     record.setComment(new String(
-                            Cryption.do_AESEncryption(record.getComment(), secretKey,
-                                    Cryption.createInitializationVector())));
+                            Cryption.do_AESEncryption(record.getComment(), secretKey)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

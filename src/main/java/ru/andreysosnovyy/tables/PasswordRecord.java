@@ -1,6 +1,17 @@
 package ru.andreysosnovyy.tables;
 
-public class Password {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class PasswordRecord {
+
+    private String serviceName;
+    private String login;
+    private String password;
+    private String comment;
+
 
     public static class Table {
         public static final String TABLE_NAME = "passwords";

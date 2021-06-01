@@ -1,14 +1,17 @@
 package ru.andreysosnovyy;
 
 import ru.andreysosnovyy.config.DBConfig;
-import ru.andreysosnovyy.tables.Password;
+import ru.andreysosnovyy.tables.PasswordRecord;
 import ru.andreysosnovyy.tables.RepositoryPassword;
 import ru.andreysosnovyy.tables.User;
 import ru.andreysosnovyy.tables.UserState;
 import ru.andreysosnovyy.utils.Cryption;
 import ru.andreysosnovyy.utils.DBPasswordRecordsBuilder;
 
+import javax.crypto.SecretKey;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBHandler extends DBConfig {
 
@@ -156,10 +159,10 @@ public class DBHandler extends DBConfig {
 
     // добавить новый пароль для пользователя
     public boolean addPasswordRecord(DBPasswordRecordsBuilder.DBPasswordRecord record) {
-        String request = "INSERT INTO " + Password.Table.TABLE_NAME + " (" +
-                Password.Table.USER_ID + "," + Password.Table.SERVICE_NAME + "," +
-                Password.Table.LOGIN + "," + Password.Table.PASSWORD + "," +
-                Password.Table.COMMENT + ")" + "VALUES(?,?,?,?,?)";
+        String request = "INSERT INTO " + PasswordRecord.Table.TABLE_NAME + " (" +
+                PasswordRecord.Table.USER_ID + "," + PasswordRecord.Table.SERVICE_NAME + "," +
+                PasswordRecord.Table.LOGIN + "," + PasswordRecord.Table.PASSWORD + "," +
+                PasswordRecord.Table.COMMENT + ")" + "VALUES(?,?,?,?,?)";
         try {
 
             if (record == null) return false;
@@ -229,6 +232,58 @@ public class DBHandler extends DBConfig {
             e.printStackTrace();
         }
     }
+
+
+    public List<PasswordRecord> getUserPasswords(long userId) {
+        ResultSet resultSet = null;
+        String request = "SELECT " +
+                PasswordRecord.Table.SERVICE_NAME + "," +
+                PasswordRecord.Table.LOGIN + "," +
+                PasswordRecord.Table.PASSWORD + "," +
+                PasswordRecord.Table.COMMENT +
+                " FROM " + PasswordRecord.Table.TABLE_NAME +
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?";
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            resultSet = preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        List<PasswordRecord> list = new ArrayList<>();
+
+        try {
+            assert resultSet != null;
+            while (resultSet.next()) {
+                PasswordRecord passwordRecord = new PasswordRecord();
+
+                // получение
+                String serviceName = resultSet.getString(PasswordRecord.Table.SERVICE_NAME);
+                String login = resultSet.getString(PasswordRecord.Table.LOGIN);
+                String password = resultSet.getString(PasswordRecord.Table.PASSWORD);
+                String comment = resultSet.getString(PasswordRecord.Table.COMMENT);
+
+                // расшифровка и заполнение
+                SecretKey key = Cryption.getSecretKeyFromString(getUserSecretKey(userId));
+                passwordRecord.setServiceName(Cryption.do_AESDecryption(serviceName.getBytes(), key));
+                passwordRecord.setLogin(Cryption.do_AESDecryption(login.getBytes(), key));
+                passwordRecord.setPassword(Cryption.do_AESDecryption(password.getBytes(), key));
+                passwordRecord.setComment(Cryption.do_AESDecryption(comment.getBytes(), key));
+
+                list.add(passwordRecord);
+            }
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+//    public Password getUserPasswords(String search) {
+//
+//    }
 
 
     // для админа

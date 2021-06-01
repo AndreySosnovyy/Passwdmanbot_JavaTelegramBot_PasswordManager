@@ -6,7 +6,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.Bot;
+import ru.andreysosnovyy.DBHandler;
 import ru.andreysosnovyy.config.Messages;
+import ru.andreysosnovyy.utils.PassListHandler;
 
 import java.util.ArrayList;
 
@@ -15,11 +17,12 @@ public class RepositoryWorker extends Worker {
         super(bot, update);
     }
 
+
     @Override
     public void run() {
         showKeyboard();
-        // todo: вывод списка паролей из базы данных
     }
+
 
     private void showKeyboard() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
@@ -37,7 +40,9 @@ public class RepositoryWorker extends Worker {
 
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(update.getMessage().getChatId().toString())
-                .replyMarkup(replyKeyboardMarkup)
+                .replyMarkup(new PassListHandler(
+                        new DBHandler().getUserPasswords(update.getMessage().getChatId())).getInlineKeyboardMarkup())
+//                .replyMarkup(replyKeyboardMarkup)
                 .text(Messages.USE_REPO_MENU)
                 .build();
         try {
