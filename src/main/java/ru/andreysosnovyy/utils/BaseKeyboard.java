@@ -37,15 +37,32 @@ public class BaseKeyboard extends Worker {
         keyboard.add(secondKeyboardRow);
         replyKeyboardMarkup.setKeyboard(keyboard);
 
-        SendMessage sendMessage = SendMessage.builder()
-                .chatId(update.getMessage().getChatId().toString())
-                .replyMarkup(replyKeyboardMarkup)
-                .text(Messages.USE_MENU)
-                .build();
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        sendMessage.setText(Messages.USE_MENU);
+        if (update.hasCallbackQuery()) {
+            sendMessage.setChatId(update.getCallbackQuery().getFrom().getId().toString());
+        } else {
+            sendMessage.setChatId(update.getMessage().getFrom().getId().toString());
+        }
+
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    public static ReplyKeyboardMarkup getCancelKeyboard() {
+        // разметка для клавиатуры с кнопкой "отмена"
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(true);
+        ArrayList<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow firstKeyboardRow = new KeyboardRow();
+        firstKeyboardRow.add(Messages.CANCEL);
+        keyboard.add(firstKeyboardRow);
+        replyKeyboardMarkup.setKeyboard(keyboard);
+        return replyKeyboardMarkup;
     }
 }

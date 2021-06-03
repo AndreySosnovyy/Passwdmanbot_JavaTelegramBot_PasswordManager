@@ -37,6 +37,10 @@ public class Messages {
     private static final String WAVING_HAND_EMOJI = Character.toString(0x1F44B);
     private static final String MAN_SHRUGGING_EMOJI = Character.toString(0x1F937);
 
+    public static final String LEFT_ARROW = Character.toString(0x276E);
+    public static final String RIGHT_ARROW = Character.toString(0x276F);
+    public static final String DOT = Character.toString(0x2022);
+
     // ============================================================================================================= //
 
     // сообщения от бота
@@ -78,7 +82,7 @@ public class Messages {
     public static final String SETTINGS = GEAR_EMOJI + " Настройки";
     public static final String BACK = BACK_EMOJI + " Назад";
     public static final String EXIT_REPO = DOOR_EMOJI + " Выйти из хранилища";
-    public static final String ADD_NEW_PASSWORD = PLUS_EMOJI + " Добавить новую запись";
+    public static final String ADD_NEW_PASSWORD = PLUS_EMOJI + " Добавить";
     public static final String SEARCH = MAGNIFIER_EMOJI + " Поиск";
     public static final String DELETE_PASSWORD = MINUS_EMOJI + " Удалить пароль";
     public static final String CANCEL = CROSS_MARK_EMOJI + " Отмена";

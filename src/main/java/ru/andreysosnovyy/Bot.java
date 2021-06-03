@@ -2,8 +2,10 @@ package ru.andreysosnovyy;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -45,10 +47,10 @@ public class Bot extends TelegramLongPollingBot {
         if (dbPasswordRecordsBuilder == null)
             dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder(activeSessionsKeeper);
 
+        DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
+
         if (update.hasMessage() && update.getMessage().hasText()) {
 
-            DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
-            String userState = handler.getUserState(update.getMessage().getChatId()); // состояние пользователя
             Message message = update.getMessage(); // сообщение из апдейта
 
             // если сообщение от администратора
@@ -65,6 +67,9 @@ public class Bot extends TelegramLongPollingBot {
                 }
             }
 
+            // состояние пользователя
+            String userState = handler.getUserState(update.getMessage().getChatId());
+            
             // если пользователь не был найден в базе данных
             if (userState == null) {
                 User user = User.builder()
@@ -81,23 +86,13 @@ public class Bot extends TelegramLongPollingBot {
                 return;
             }
 
-            // разметка для клавиатуры с кнопкой "отмена"
-            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-            replyKeyboardMarkup.setResizeKeyboard(true);
-            replyKeyboardMarkup.setOneTimeKeyboard(true);
-            ArrayList<KeyboardRow> keyboard = new ArrayList<>();
-            KeyboardRow firstKeyboardRow = new KeyboardRow();
-            firstKeyboardRow.add(Messages.CANCEL);
-            keyboard.add(firstKeyboardRow);
-            replyKeyboardMarkup.setKeyboard(keyboard);
-
             // поиск нужно обработчика по состоянию пользователя для полученного сообщения
             switch (userState) {
                 case UserState.Names.BASE_NO_REPOSITORY_PASSWORD -> {
                     long userId = message.getFrom().getId();
 
                     // Удаление пароля
-                    org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage deleteMessage = new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage();
+                    DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setChatId(message.getChatId().toString());
                     deleteMessage.setMessageId(message.getMessageId());
                     new DeleteMessageUtil(this, deleteMessage, 0).start();
@@ -134,7 +129,7 @@ public class Bot extends TelegramLongPollingBot {
                     } else {
                         // если пришел пароль, то его надо будет удалить
                         if (PasswordGenerator.checkIfPassword(message.getText())) {
-                            new DeleteMessageUtil(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
+                            new DeleteMessageUtil(this, new DeleteMessage(
                                     message.getChatId().toString(), message.getMessageId()),
                                     15_000).start();
                         }
@@ -154,38 +149,8 @@ public class Bot extends TelegramLongPollingBot {
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
                     }
                     // удаление пароля
-                    new DeleteMessageUtil(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
+                    new DeleteMessageUtil(this, new DeleteMessage(
                             message.getChatId().toString(), message.getMessageId()), 0).start();
-                }
-
-                case UserState.Names.REPOSITORY_LIST -> {
-                    // проверка на активность сессии
-                    if (activeSessionsKeeper.isActive(message.getChatId())) {
-                        if (message.getText().equals(Messages.ADD_NEW_PASSWORD)) {
-                            dbPasswordRecordsBuilder.addRecord(message.getChatId());
-                            handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
-                            SendMessage sendMessage = new SendMessage();
-                            sendMessage.setChatId(message.getChatId().toString());
-                            sendMessage.setText(Messages.ENTER_SERVICE_NAME);
-                            sendMessage.setReplyMarkup(replyKeyboardMarkup);
-                            execute(sendMessage);
-                        } else if (message.getText().equals(Messages.SEARCH)) {
-
-                        } else if (message.getText().equals(Messages.EXIT_REPO)) {
-                            handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                            new BaseKeyboard(this, update).start();
-                        } else {
-
-                        }
-                    } else {
-                        execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
-                        handler.setUserState(message.getChatId(), UserState.Names.BASE);
-                        new BaseKeyboard(this, update).start();
-                    }
-                }
-
-                case UserState.Names.REPOSITORY_SEARCH -> {
-
                 }
 
                 case UserState.Names.REPOSITORY_ADD_SERVICE_NAME -> {
@@ -200,7 +165,7 @@ public class Bot extends TelegramLongPollingBot {
                             SendMessage sendMessage = new SendMessage();
                             sendMessage.setChatId(message.getChatId().toString());
                             sendMessage.setText(Messages.ENTER_LOGIN);
-                            sendMessage.setReplyMarkup(replyKeyboardMarkup);
+                            sendMessage.setReplyMarkup(BaseKeyboard.getCancelKeyboard());
                             execute(sendMessage);
                             new DeleteMessageUtil(this, new DeleteMessage(
                                     message.getChatId().toString(), message.getMessageId()), 60_000).start();
@@ -224,6 +189,7 @@ public class Bot extends TelegramLongPollingBot {
                             SendMessage sendMessage = new SendMessage();
                             sendMessage.setChatId(message.getChatId().toString());
                             sendMessage.setText(Messages.ENTER_PASSWORD);
+                            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
                             ArrayList<KeyboardRow> newKeyboard = new ArrayList<>();
                             KeyboardRow newFirstKeyboardRow = new KeyboardRow();
                             newFirstKeyboardRow.add(Messages.GENERATE_PASSWORD);
@@ -261,7 +227,7 @@ public class Bot extends TelegramLongPollingBot {
                         SendMessage sendMessage = new SendMessage();
                         sendMessage.setChatId(message.getChatId().toString());
                         sendMessage.setText(Messages.ENTER_COMMENT);
-                        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+                        sendMessage.setReplyMarkup(BaseKeyboard.getCancelKeyboard());
                         execute(sendMessage);
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
@@ -305,7 +271,7 @@ public class Bot extends TelegramLongPollingBot {
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
                     }
                     // удаление пароля
-                    new DeleteMessageUtil(this, new org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage(
+                    new DeleteMessageUtil(this, new DeleteMessage(
                             message.getChatId().toString(), message.getMessageId()), 0).start();
                 }
 
@@ -355,6 +321,27 @@ public class Bot extends TelegramLongPollingBot {
 
                     }
                 }
+            }
+        } else if (update.hasCallbackQuery()) {
+            // колбэки используются только в хранилище
+
+            CallbackQuery callback = update.getCallbackQuery();
+
+            if (callback.getData().equals("exitButton")) {
+                execute(new AnswerCallbackQuery(update.getCallbackQuery().getId(), "Exit", true, null, null));
+                handler.setUserState(callback.getFrom().getId(), UserState.Names.BASE);
+                new BaseKeyboard(this, update).start();
+            } else if (callback.getData().equals("addButton")) {
+                execute(new AnswerCallbackQuery(update.getCallbackQuery().getId(), "Add", true, null, null));
+                dbPasswordRecordsBuilder.addRecord(callback.getFrom().getId());
+                handler.setUserState(callback.getFrom().getId(), UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setChatId(callback.getFrom().getId().toString());
+                sendMessage.setText(Messages.ENTER_SERVICE_NAME);
+                sendMessage.setReplyMarkup(BaseKeyboard.getCancelKeyboard());
+                execute(sendMessage);
+            } else if (callback.getData().equals("searchButton")) {
+                execute(new AnswerCallbackQuery(update.getCallbackQuery().getId(), "Search", true, null, null));
             }
         }
     }
