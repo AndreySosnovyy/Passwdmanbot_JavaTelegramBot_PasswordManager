@@ -55,12 +55,12 @@ class TestBot extends TelegramLongPollingBot {
         if (dbPasswordRecordsBuilder == null)
             dbPasswordRecordsBuilder = new DBPasswordRecordsBuilder(activeSessionsKeeper);
 
-        DBHandler handler = new DBHandler(); // хэнлдер для работы с базой данных
-        Message message = update.getMessage(); // сообщение из апдейта
+        DBHandler handler = new DBHandler(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        Message message = update.getMessage(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
         if (update.hasMessage() && update.getMessage().hasText()) {
 
-            String userState = handler.getUserState(update.getMessage().getChatId()); // состояние пользователя
+            String userState = handler.getUserState(update.getMessage().getChatId()); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
             System.out.println("Message");
 
@@ -99,7 +99,7 @@ class TestBot extends TelegramLongPollingBot {
             try {
                 SendMessage sendMessage = SendMessage.builder()
                         .chatId(update.getMessage().getChatId().toString())
-                        .replyMarkup(new PassListHandler(new DBHandler().getUserPasswords(update.getMessage().getChatId()), 0).getInlineKeyboardMarkup())
+                        .replyMarkup(new PassListHandler(new DBHandler().getUserPasswords(update.getMessage().getChatId()), 0).getInlineKeyboardMarkup(null))
                         .text(Messages.USE_REPO_MENU)
                         .build();
                 bot.execute(sendMessage);
@@ -113,12 +113,12 @@ class TestBot extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
 
-        // кнопка поиска
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         InlineKeyboardButton searchButton = new InlineKeyboardButton();
         searchButton.setText(Messages.SEARCH);
         searchButton.setCallbackData("searchButton");
 
-        // кнопка добавления
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         InlineKeyboardButton addButton = new InlineKeyboardButton();
         addButton.setText(Messages.ADD_NEW_PASSWORD);
         addButton.setCallbackData("addButton");
@@ -128,7 +128,7 @@ class TestBot extends TelegramLongPollingBot {
         headerRow.add(addButton);
         rowList.add(headerRow);
 
-        // ряд с кнопками переходов по страницам
+        // пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         InlineKeyboardButton beginPageButton = new InlineKeyboardButton();
         beginPageButton.setCallbackData("beginPageButton");
         beginPageButton.setText(Messages.LEFT_ARROW + Messages.LEFT_ARROW);
@@ -157,7 +157,7 @@ class TestBot extends TelegramLongPollingBot {
         pagesRow.add(lastPageButton);
         rowList.add(pagesRow);
 
-        // кнопка выхода
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         InlineKeyboardButton exitButton = new InlineKeyboardButton();
         exitButton.setText(Messages.EXIT_REPO);
         exitButton.setCallbackData("exitButton");

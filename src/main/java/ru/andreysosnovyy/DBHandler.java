@@ -264,6 +264,9 @@ public class DBHandler extends DBConfig {
                 String password = resultSet.getString(PasswordRecord.Table.PASSWORD);
                 String comment = resultSet.getString(PasswordRecord.Table.COMMENT);
 
+                // Проблема с кодировкой: иногда в базу добавляется символ вопроса в черном ромбе,
+                //  который корректно не расшифровывается!
+
                 // расшифровка и заполнение
                 SecretKey key = Cryption.getSecretKeyFromString(getUserSecretKey(userId));
                 passwordRecord.setServiceName(Cryption.do_AESDecryption(serviceName.getBytes(), key));
@@ -279,11 +282,6 @@ public class DBHandler extends DBConfig {
         }
         return null;
     }
-
-
-//    public Password getUserPasswords(String search) {
-//
-//    }
 
 
     // для админа

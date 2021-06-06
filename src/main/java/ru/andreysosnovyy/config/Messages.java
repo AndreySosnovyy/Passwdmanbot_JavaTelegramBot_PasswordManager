@@ -59,6 +59,7 @@ public class Messages {
     public static final String WRONG_REPO_PASS = NO_ENTRY_EMOJI + " | Неверный пароль!";
     public static final String USE_REPO_MENU = BOOKMARK_TABS_EMOJI + " | Воспользуйтесь навигационным меню по хранилищу:";
     public static final String ENTER_SERVICE_NAME = KEYBOARD_EMOJI + " | Введите название сервиса:";
+    public static final String SERVICE_NAME_EXISTS = CROSS_MARK_EMOJI + " | Данное название сервиса уже занято!";
     public static final String ENTER_LOGIN = KEYBOARD_EMOJI + " | Введите логин:";
     public static final String ENTER_PASSWORD = KEYBOARD_EMOJI + " | Введите пароль:";
     public static final String ENTER_COMMENT = KEYBOARD_EMOJI + " | Введите комментарий ('-' если не требуется):";

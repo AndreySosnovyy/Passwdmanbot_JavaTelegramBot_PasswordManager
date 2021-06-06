@@ -10,10 +10,8 @@ import java.util.List;
 
 public class PassListHandler {
 
-    // todo: что-то сделать с повторными именами сервисов
-    //  (скорее всего надо будет как-то выдавать разные колбэки)
-    // todo: постраничный вывод
-    // todo: перенести кнопки с нижней клавиатуры на инлайн
+    // todo: С‡С‚Рѕ-С‚Рѕ СЃРґРµР»Р°С‚СЊ СЃ РїРѕРІС‚РѕСЂРЅС‹РјРё РёРјРµРЅР°РјРё СЃРµСЂРІРёСЃРѕРІ
+    //  (СЃРєРѕСЂРµРµ РІСЃРµРіРѕ РЅР°РґРѕ Р±СѓРґРµС‚ РєР°Рє-С‚Рѕ РІС‹РґР°РІР°С‚СЊ СЂР°Р·РЅС‹Рµ РєРѕР»Р±СЌРєРё)
 
     private final int recordsPerPage = 10;
 
@@ -25,17 +23,17 @@ public class PassListHandler {
         this.page = page;
     }
 
-    public InlineKeyboardMarkup getInlineKeyboardMarkup() {
+    public InlineKeyboardMarkup getInlineKeyboardMarkup(String search) {
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
 
-        // кнопка поиска
+        // РєРЅРѕРїРєР° РїРѕРёСЃРєР°
         InlineKeyboardButton searchButton = new InlineKeyboardButton();
         searchButton.setText(Messages.SEARCH);
         searchButton.setCallbackData("searchButton");
 
-        // кнопка добавления
+        // РєРЅРѕРїРєР° РґРѕР±Р°РІР»РµРЅРёСЏ
         InlineKeyboardButton addButton = new InlineKeyboardButton();
         addButton.setText(Messages.ADD_NEW_PASSWORD);
         addButton.setCallbackData("addButton");
@@ -49,14 +47,22 @@ public class PassListHandler {
             if (passwords.size() > i) {
                 List<InlineKeyboardButton> row = new ArrayList<>();
                 InlineKeyboardButton button = new InlineKeyboardButton();
-                button.setText(passwords.get(i).getServiceName());
-                button.setCallbackData(passwords.get(i).getServiceName());
+
+                if (search == null || search.isEmpty()) {
+                    button.setText(passwords.get(i).getServiceName());
+                    // todo: СѓСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ СѓРЅРёРєР°Р»СЊРЅС‹Рµ РєРѕР»Р±СЌРєРё РёР»Рё
+                    //  РґРѕР±Р°РІРёС‚СЊ РїСЂРѕРІРµСЂРєСѓ РЅР° РїРѕРІС‚РѕСЂРµРЅРёРµ РёРјРµРЅ СЃРµСЂРІРёСЃРѕРІ РІ Р±Р°Р·Рµ РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё
+                    button.setCallbackData(passwords.get(i).getServiceName());
+                } else if (passwords.get(i).getServiceName().toLowerCase().contains(search.toLowerCase())) {
+
+                }
+
                 row.add(button);
                 rowList.add(row);
             }
         }
 
-        // ряд с кнопками переходов по страницам
+        // СЂСЏРґ СЃ РєРЅРѕРїРєР°РјРё РїРµСЂРµС…РѕРґРѕРІ РїРѕ СЃС‚СЂР°РЅРёС†Р°Рј
         InlineKeyboardButton beginPageButton = new InlineKeyboardButton();
         beginPageButton.setCallbackData("beginPageButton");
         beginPageButton.setText(Messages.LEFT_ARROW + Messages.LEFT_ARROW);
@@ -90,7 +96,7 @@ public class PassListHandler {
         pagesRow.add(lastPageButton);
         rowList.add(pagesRow);
 
-        // кнопка выхода
+        // РєРЅРѕРїРєР° РІС‹С…РѕРґР°
         InlineKeyboardButton exitButton = new InlineKeyboardButton();
         exitButton.setText(Messages.EXIT_REPO);
         exitButton.setCallbackData("exitButton");

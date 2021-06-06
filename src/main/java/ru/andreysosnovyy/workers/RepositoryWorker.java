@@ -16,24 +16,25 @@ public class RepositoryWorker extends Worker {
 
     @Override
     public void run() {
-        showKeyboard();
-    }
-
-    private void showKeyboard() {
-
-        // todo: запоминать id сообщения, чтобы можно было его потом редактировать (при смене страниц в хранилище)
-
-        // todo: где-то хранить номер страницы
-
+        int page = bot.activeSessionsKeeper.getPage(update.getMessage().getChatId());
         try {
             SendMessage sendMessage = SendMessage.builder()
                     .chatId(update.getMessage().getChatId().toString())
-                    .replyMarkup(new PassListHandler(new DBHandler().getUserPasswords(update.getMessage().getChatId()), 0).getInlineKeyboardMarkup())
+                    .replyMarkup(new PassListHandler(new DBHandler().getUserPasswords(
+                            update.getMessage().getChatId()), page).getInlineKeyboardMarkup(null))
                     .text(Messages.USE_REPO_MENU)
                     .build();
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean validatePage(long userId, int page) {
+        return page <= getLastPage(userId) && page >= 0;
+    }
+
+    public static int getLastPage(long userId) {
+        return new DBHandler().getUserPasswords(userId).size() / 10 + 1;
     }
 }
