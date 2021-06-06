@@ -8,20 +8,23 @@ import ru.andreysosnovyy.DBHandler;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.utils.PassListHandler;
 
-public class RepositoryWorker extends Worker {
+public class RepositoryWorker {
+
+    Bot bot;
+    Update update;
 
     public RepositoryWorker(Bot bot, Update update) {
-        super(bot, update);
+        this.bot = bot;
+        this.update = update;
     }
 
-    @Override
-    public void run() {
+    public void start(String search) {
         int page = bot.activeSessionsKeeper.getPage(update.getMessage().getChatId());
         try {
             SendMessage sendMessage = SendMessage.builder()
                     .chatId(update.getMessage().getChatId().toString())
                     .replyMarkup(new PassListHandler(new DBHandler().getUserPasswords(
-                            update.getMessage().getChatId()), page).getInlineKeyboardMarkup(null))
+                            update.getMessage().getChatId()), page).getInlineKeyboardMarkup(search))
                     .text(Messages.USE_REPO_MENU)
                     .build();
             bot.execute(sendMessage);

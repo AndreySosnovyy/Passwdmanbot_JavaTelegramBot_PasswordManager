@@ -11,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.PasswordRecord;
@@ -149,7 +148,7 @@ public class Bot extends TelegramLongPollingBot {
                     if (Hash.checkPassword(message.getText(), handler.getRepositoryPasswordHash(message.getChatId()))) {
                         activeSessionsKeeper.addActiveSession(message.getChatId()); // активировать сессию
                         handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST); // сменить состояние
-                        new RepositoryWorker(this, update).start();
+                        new RepositoryWorker(this, update).start(null);
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.WRONG_REPO_PASS));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
@@ -174,7 +173,7 @@ public class Bot extends TelegramLongPollingBot {
                         if (message.getText().equals(Messages.CANCEL)) {
                             dbPasswordRecordsBuilder.removeRecord(message.getChatId());
                             handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-                            new RepositoryWorker(this, update).start();
+                            new RepositoryWorker(this, update).start(null);
                         } else {
                             // проверка на повторение имена сервисов в базе
                             List<PasswordRecord> passwordRecords = handler.getUserPasswords(message.getChatId());
@@ -210,7 +209,7 @@ public class Bot extends TelegramLongPollingBot {
                         if (message.getText().equals(Messages.CANCEL)) {
                             dbPasswordRecordsBuilder.removeRecord(message.getChatId());
                             handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-                            new RepositoryWorker(this, update).start();
+                            new RepositoryWorker(this, update).start(null);
                         } else {
                             dbPasswordRecordsBuilder.setLogin(message.getChatId(), message.getText());
                             handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_ADD_PASSWORD);
@@ -243,7 +242,7 @@ public class Bot extends TelegramLongPollingBot {
                         if (message.getText().equals(Messages.CANCEL)) {
                             dbPasswordRecordsBuilder.removeRecord(message.getChatId());
                             handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-                            new RepositoryWorker(this, update).start();
+                            new RepositoryWorker(this, update).start(null);
                             return;
                         } else if (message.getText().equals(Messages.GENERATE_PASSWORD)) {
                             dbPasswordRecordsBuilder.setPassword(message.getChatId(),
@@ -282,7 +281,7 @@ public class Bot extends TelegramLongPollingBot {
                                     message.getChatId().toString(), message.getMessageId()), 60_000).start();
                         }
                         handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-                        new RepositoryWorker(this, update).start();
+                        new RepositoryWorker(this, update).start(null);
                     } else {
                         execute(new SendMessage(message.getChatId().toString(), Messages.SESSION_NOT_ACTIVE));
                         handler.setUserState(message.getChatId(), UserState.Names.BASE);
@@ -358,14 +357,21 @@ public class Bot extends TelegramLongPollingBot {
                         new SettingsKeyboard(this, update).start();
                     }
                 }
+
+                case UserState.Names.REPOSITORY_SEARCH -> {
+                    activeSessionsKeeper.prolongSettingsSession(message.getChatId());
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                    new RepositoryWorker(this, update).start(message.getText());
+                }
             }
+
         } else if (update.hasCallbackQuery()) { // колбэки используются только в хранилище!
 
             CallbackQuery callback = update.getCallbackQuery();
             String callbackData = callback.getData();
             long messageId = callback.getMessage().getMessageId();
             long chatId = callback.getMessage().getChatId();
-            
+
             String userState = handler.getUserState(chatId); // состояние пользователя
 
             // создание обновления сообщения (заполнятся будет в if)
@@ -376,9 +382,8 @@ public class Bot extends TelegramLongPollingBot {
 
             if (activeSessionsKeeper.isActive(chatId)) {
 
-//                System.out.println("Callback data in session = " + callbackData);
-
                 if (callbackData.equals("exitButton")) {
+                    execute(new DeleteMessage(String.valueOf(chatId), (int) messageId));
                     handler.setUserState(chatId, UserState.Names.BASE);
                     new BaseKeyboard(this, update).start();
 
@@ -392,6 +397,9 @@ public class Bot extends TelegramLongPollingBot {
                     execute(sendMessage);
 
                 } else if (callbackData.equals("searchButton")) {
+                    execute(new SendMessage(String.valueOf(chatId), Messages.ENTER_SEARCH_STRING));
+                    handler.setUserState(chatId, UserState.Names.REPOSITORY_SEARCH);
+                    execute(new DeleteMessage(String.valueOf(chatId), (int) messageId));
 
                 } else if (callbackData.equals("beginPageButton") && activeSessionsKeeper.getPage(chatId) != 0) {
                     activeSessionsKeeper.setPage(chatId, 0);
@@ -426,7 +434,6 @@ public class Bot extends TelegramLongPollingBot {
                 }
 
                 // обновление созданного и заполненного выше сообщения
-//                execute(new AnswerCallbackQuery(callback.getId()));
                 execute(editMessage);
 
             } else { // сессия не активна

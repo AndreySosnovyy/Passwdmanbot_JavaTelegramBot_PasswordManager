@@ -50,15 +50,15 @@ public class PassListHandler {
 
                 if (search == null || search.isEmpty()) {
                     button.setText(passwords.get(i).getServiceName());
-                    // todo: устанавливать уникальные колбэки или
-                    //  добавить проверку на повторение имен сервисов в базе при добавлении
                     button.setCallbackData(passwords.get(i).getServiceName());
+                    row.add(button);
+                    rowList.add(row);
                 } else if (passwords.get(i).getServiceName().toLowerCase().contains(search.toLowerCase())) {
-
+                    button.setText(passwords.get(i).getServiceName());
+                    button.setCallbackData(passwords.get(i).getServiceName());
+                    row.add(button);
+                    rowList.add(row);
                 }
-
-                row.add(button);
-                rowList.add(row);
             }
         }
 
