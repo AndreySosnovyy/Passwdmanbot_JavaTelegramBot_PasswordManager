@@ -309,14 +309,18 @@ public class DBHandler extends DBConfig {
     }
 
 
-    public void editRecordPassword(long userId, String newPassword) {
+    public void editRecordPassword(long userId, String serviceName,  String newPassword) {
         String request = "UPDATE " + PasswordRecord.Table.TABLE_NAME +
                 " SET " + PasswordRecord.Table.PASSWORD + "=?" +
-                " WHERE " + PasswordRecord.Table.USER_ID + "=?";
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?" +
+                " AND " + PasswordRecord.Table.SERVICE_NAME + "=?";
 
         String encodedNewPassword = null;
+        String encodedServiceName = null;
         try {
             encodedNewPassword = new String(Cryption.do_AESEncryption(newPassword,
+                    Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
+            encodedServiceName = new String(Cryption.do_AESEncryption(serviceName,
                     Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
         } catch (Exception e) {
             e.printStackTrace();
@@ -327,6 +331,7 @@ public class DBHandler extends DBConfig {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setString(1, encodedNewPassword);
             preparedStatement.setLong(2, userId);
+            preparedStatement.setString(3, encodedServiceName);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -334,14 +339,18 @@ public class DBHandler extends DBConfig {
     }
 
 
-    public void editRecordComment(long userId, String newComment) {
+    public void editRecordComment(long userId, String serviceName, String newComment) {
         String request = "UPDATE " + PasswordRecord.Table.TABLE_NAME +
                 " SET " + PasswordRecord.Table.COMMENT + "=?" +
-                " WHERE " + PasswordRecord.Table.USER_ID + "=?";
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?" +
+                " AND " + PasswordRecord.Table.SERVICE_NAME + "=?";
 
         String encodedNewComment = null;
+        String encodedServiceName = null;
         try {
             encodedNewComment = new String(Cryption.do_AESEncryption(newComment,
+                    Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
+            encodedServiceName = new String(Cryption.do_AESEncryption(serviceName,
                     Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
         } catch (Exception e) {
             e.printStackTrace();
@@ -352,6 +361,7 @@ public class DBHandler extends DBConfig {
             PreparedStatement preparedStatement = getConnection().prepareStatement(request);
             preparedStatement.setString(1, encodedNewComment);
             preparedStatement.setLong(2, userId);
+            preparedStatement.setString(3, encodedServiceName);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

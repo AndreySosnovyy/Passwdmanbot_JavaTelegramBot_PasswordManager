@@ -11,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.PasswordRecord;
@@ -183,7 +182,6 @@ public class Bot extends TelegramLongPollingBot {
                                     // совпадение в базе найдено
                                     execute(new SendMessage(message.getChatId().toString(), Messages.SERVICE_NAME_EXISTS));
                                     handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
-//                                    new RepositoryWorker(this, update).start();
                                     return;
                                 }
                             }
@@ -391,18 +389,22 @@ public class Bot extends TelegramLongPollingBot {
 
                 case UserState.Names.REPOSITORY_EDIT_RECORD_PASSWORD -> {
                     activeSessionsKeeper.prolongSession(message.getChatId());
-                    handler.editRecordPassword(message.getChatId(), message.getText());
+                    handler.editRecordPassword(message.getChatId(),
+                            WatchingRecordsController.getServiceName(message.getChatId()), message.getText());
                     handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
                     new DeleteMessageUtil(this, new DeleteMessage(message.getChatId().toString(), message.getMessageId()), 0).start();
                     new RepositoryWorker(this, update).start(null);
+                    WatchingRecordsController.remove(message.getChatId());
                 }
 
                 case UserState.Names.REPOSITORY_EDIT_RECORD_COMMENT -> {
                     activeSessionsKeeper.prolongSession(message.getChatId());
-                    handler.editRecordComment(message.getChatId(), message.getText());
+                    handler.editRecordComment(message.getChatId(),
+                            WatchingRecordsController.getServiceName(message.getChatId()), message.getText());
                     handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
                     new RepositoryWorker(this, update).start(null);
                     new DeleteMessageUtil(this, new DeleteMessage(message.getChatId().toString(), message.getMessageId()), 0).start();
+                    WatchingRecordsController.remove(message.getChatId());
                 }
             }
 
@@ -425,6 +427,7 @@ public class Bot extends TelegramLongPollingBot {
                     execute(new DeleteMessage(String.valueOf(chatId), (int) messageId));
                     handler.setUserState(chatId, UserState.Names.BASE);
                     new BaseKeyboard(this, update).start();
+                    execute(editMessage); // обновление сообщения
 
                 } else if (callbackData.equals("addButton")) {
                     dbPasswordRecordsBuilder.addRecord(chatId);
@@ -440,19 +443,29 @@ public class Bot extends TelegramLongPollingBot {
                     handler.setUserState(chatId, UserState.Names.REPOSITORY_SEARCH);
                     execute(new DeleteMessage(String.valueOf(chatId), (int) messageId));
 
-                } else if (callbackData.equals("beginPageButton") && activeSessionsKeeper.getPage(chatId) != 0) {
-                    activeSessionsKeeper.setPage(chatId, 0);
-                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-                            (chatId), 0).getInlineKeyboardMarkup(null));
+                } else if (callbackData.equals("beginPageButton")) {
+                    if (activeSessionsKeeper.getPage(chatId) != 0) {
+                        activeSessionsKeeper.setPage(chatId, 0);
+                        editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                                (chatId), 0).getInlineKeyboardMarkup(null));
+                        execute(editMessage); // обновление сообщения
+                    } else {
+                        execute(new AnswerCallbackQuery(callback.getId()));
+                    }
 
-                } else if (callbackData.equals("previousPageButton") &&
-                        activeSessionsKeeper.getPage(chatId) > 0) {
-                    int currentPage = activeSessionsKeeper.getPage(chatId);
-                    activeSessionsKeeper.setPage(chatId, currentPage - 1);
-                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-                            (chatId), currentPage - 1).getInlineKeyboardMarkup(null));
+                } else if (callbackData.equals("previousPageButton")) {
+                    if (activeSessionsKeeper.getPage(chatId) > 0) {
+                        int currentPage = activeSessionsKeeper.getPage(chatId);
+                        activeSessionsKeeper.setPage(chatId, currentPage - 1);
+                        editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                                (chatId), currentPage - 1).getInlineKeyboardMarkup(null));
+                        execute(editMessage); // обновление сообщения
+                    } else {
+                        execute(new AnswerCallbackQuery(callback.getId()));
+                    }
 
                 } else if (callbackData.equals("currentPageButton")) {
+                    execute(new AnswerCallbackQuery(callback.getId()));
 
                 } else if (callbackData.equals("nextPageButton")) {
                     int currentPage = activeSessionsKeeper.getPage(chatId);
@@ -460,6 +473,7 @@ public class Bot extends TelegramLongPollingBot {
                         activeSessionsKeeper.setPage(chatId, currentPage + 1);
                         editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
                                 (chatId), currentPage + 1).getInlineKeyboardMarkup(null));
+                        execute(editMessage); // обновление сообщения
                     }
 
                 } else if (callbackData.equals("lastPageButton")) {
@@ -467,15 +481,14 @@ public class Bot extends TelegramLongPollingBot {
                     activeSessionsKeeper.setPage(chatId, lastPage);
                     editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
                             (chatId), lastPage).getInlineKeyboardMarkup(null));
+                    execute(editMessage); // обновление сообщения
 
                 } else { // нажата кнопка записи хранилища
-                    WatchingRecordsController.add(chatId, callbackData);
                     handler.setUserState(chatId, UserState.Names.REPOSITORY_RECORD);
+                    execute(new DeleteMessage(String.valueOf(chatId), (int) messageId));
+                    WatchingRecordsController.add(chatId, callbackData);
                     WatchingRecordsController.showKeyboard(this, chatId, callbackData);
                 }
-
-                // обновление созданного и заполненного выше сообщения
-                execute(editMessage);
 
             } else { // сессия не активна
                 execute(new SendMessage(String.valueOf(chatId), Messages.SESSION_NOT_ACTIVE));

@@ -35,12 +35,12 @@ public class WatchingRecordsController {
     }
 
     public static void remove(long userId) {
-        watchingRecords.removeIf(record -> record.userId == userId);
+        watchingRecords.removeIf(record -> record.getUserId() == userId);
     }
 
     public static String getServiceName(long userId) {
         for (WatchingRecord record : watchingRecords) {
-            if (record.userId == userId) {
+            if (record.getUserId() == userId) {
                 return record.getServiceName();
             }
         }
@@ -48,7 +48,7 @@ public class WatchingRecordsController {
     }
 
     @SneakyThrows
-    public static void showKeyboard(Bot bot, long chatId,String serviceName) {
+    public static void showKeyboard(Bot bot, long chatId, String serviceName) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
