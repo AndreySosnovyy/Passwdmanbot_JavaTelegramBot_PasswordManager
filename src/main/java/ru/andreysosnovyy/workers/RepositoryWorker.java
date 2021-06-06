@@ -35,6 +35,6 @@ public class RepositoryWorker extends Worker {
     }
 
     public static int getLastPage(long userId) {
-        return new DBHandler().getUserPasswords(userId).size() / 10 + 1;
+        return new DBHandler().getUserPasswords(userId).size() / 10;
     }
 }

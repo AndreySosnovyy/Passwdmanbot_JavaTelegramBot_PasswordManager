@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.PasswordRecord;
@@ -22,6 +23,8 @@ import ru.andreysosnovyy.workers.RepositoryWorker;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.StrictMath.toIntExact;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -358,68 +361,77 @@ public class Bot extends TelegramLongPollingBot {
             }
         } else if (update.hasCallbackQuery()) { // колбэки используются только в хранилище!
 
-//            String userState = handler.getUserState(update.getMessage().getChatId()); // состояние пользователя
-//            String id = update.getCallbackQuery().getId();
-
             CallbackQuery callback = update.getCallbackQuery();
+            String callbackData = callback.getData();
+            long messageId = callback.getMessage().getMessageId();
+            long chatId = callback.getMessage().getChatId();
+            
+            String userState = handler.getUserState(chatId); // состояние пользователя
 
             // создание обновления сообщения (заполнятся будет в if)
-//            EditMessageText editMessage = new EditMessageText();
-//            editMessage.setMessageId(Integer.valueOf(id));
-//            editMessage.setChatId(callback.getFrom().getId().toString());
+            EditMessageText editMessage = new EditMessageText();
+            editMessage.setMessageId(toIntExact(messageId));
+            editMessage.setChatId(Long.toString(chatId));
+            editMessage.setText(Messages.USE_REPO_MENU);
 
-            if (activeSessionsKeeper.isActive(callback.getFrom().getId())) {
-                if (callback.getData().equals("exitButton")) {
-                    handler.setUserState(callback.getFrom().getId(), UserState.Names.BASE);
+            if (activeSessionsKeeper.isActive(chatId)) {
+
+//                System.out.println("Callback data in session = " + callbackData);
+
+                if (callbackData.equals("exitButton")) {
+                    handler.setUserState(chatId, UserState.Names.BASE);
                     new BaseKeyboard(this, update).start();
 
-                } else if (callback.getData().equals("addButton")) {
-                    dbPasswordRecordsBuilder.addRecord(callback.getFrom().getId());
-                    handler.setUserState(callback.getFrom().getId(), UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
+                } else if (callbackData.equals("addButton")) {
+                    dbPasswordRecordsBuilder.addRecord(chatId);
+                    handler.setUserState(chatId, UserState.Names.REPOSITORY_ADD_SERVICE_NAME);
                     SendMessage sendMessage = new SendMessage();
-                    sendMessage.setChatId(callback.getFrom().getId().toString());
+                    sendMessage.setChatId(String.valueOf(chatId));
                     sendMessage.setText(Messages.ENTER_SERVICE_NAME);
                     sendMessage.setReplyMarkup(BaseKeyboard.getCancelKeyboard());
                     execute(sendMessage);
 
-                } else if (callback.getData().equals("searchButton")) {
+                } else if (callbackData.equals("searchButton")) {
 
-                } else if (callback.getData().equals("beginPageButton") &&
-                        activeSessionsKeeper.getPage(callback.getFrom().getId()) != 0) {
-                    activeSessionsKeeper.setPage(callback.getFrom().getId(), 0);
-//                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-//                            (callback.getFrom().getId()), 0).getInlineKeyboardMarkup());
-                } else if (callback.getData().equals("previousPageButton") &&
-                        activeSessionsKeeper.getPage(callback.getFrom().getId()) > 0) {
-                    int currentPage = activeSessionsKeeper.getPage(callback.getFrom().getId()) + 1;
-                    activeSessionsKeeper.setPage(callback.getFrom().getId(), currentPage - 1);
-//                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-//                            (callback.getFrom().getId()), currentPage - 1).getInlineKeyboardMarkup());
-                } else if (callback.getData().equals("currentPageButton")) {
+                } else if (callbackData.equals("beginPageButton") && activeSessionsKeeper.getPage(chatId) != 0) {
+                    activeSessionsKeeper.setPage(chatId, 0);
+                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                            (chatId), 0).getInlineKeyboardMarkup(null));
 
-                } else if (callback.getData().equals("nextPageButton")) {
-                    int currentPage = activeSessionsKeeper.getPage(callback.getFrom().getId()) + 1;
-                    if (RepositoryWorker.validatePage(callback.getFrom().getId(), currentPage + 1)) {
-                        activeSessionsKeeper.setPage(callback.getFrom().getId(), currentPage + 1);
-//                        editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-//                                (callback.getFrom().getId()), currentPage + 1).getInlineKeyboardMarkup());
+                } else if (callbackData.equals("previousPageButton") &&
+                        activeSessionsKeeper.getPage(chatId) > 0) {
+                    int currentPage = activeSessionsKeeper.getPage(chatId);
+                    activeSessionsKeeper.setPage(chatId, currentPage - 1);
+                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                            (chatId), currentPage - 1).getInlineKeyboardMarkup(null));
+
+                } else if (callbackData.equals("currentPageButton")) {
+
+                } else if (callbackData.equals("nextPageButton")) {
+                    int currentPage = activeSessionsKeeper.getPage(chatId);
+                    if (RepositoryWorker.validatePage(chatId, currentPage + 1)) {
+                        activeSessionsKeeper.setPage(chatId, currentPage + 1);
+                        editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                                (chatId), currentPage + 1).getInlineKeyboardMarkup(null));
                     }
-                } else if (callback.getData().equals("lastPageButton")) {
-                    int lastPage = RepositoryWorker.getLastPage(callback.getFrom().getId());
-                    activeSessionsKeeper.setPage(callback.getFrom().getId(), lastPage);
-//                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
-//                            (callback.getFrom().getId()), lastPage).getInlineKeyboardMarkup());
+
+                } else if (callbackData.equals("lastPageButton")) {
+                    int lastPage = RepositoryWorker.getLastPage(chatId);
+                    activeSessionsKeeper.setPage(chatId, lastPage);
+                    editMessage.setReplyMarkup(new PassListHandler(handler.getUserPasswords
+                            (chatId), lastPage).getInlineKeyboardMarkup(null));
+
                 } else { // нажата кнопка записи хранилища
 
                 }
 
                 // обновление созданного и заполненного выше сообщения
-//                execute(editMessage);
-                execute(new AnswerCallbackQuery(callback.getId()));
+//                execute(new AnswerCallbackQuery(callback.getId()));
+                execute(editMessage);
 
             } else { // сессия не активна
-                execute(new SendMessage(callback.getFrom().getId().toString(), Messages.SESSION_NOT_ACTIVE));
-                handler.setUserState(callback.getFrom().getId(), UserState.Names.BASE);
+                execute(new SendMessage(String.valueOf(chatId), Messages.SESSION_NOT_ACTIVE));
+                handler.setUserState(chatId, UserState.Names.BASE);
                 new BaseKeyboard(this, update).start();
             }
         }

@@ -18,10 +18,10 @@ public class ActiveSessionsKeeper {
     @Builder
     @Getter
     private static class ActiveSession {
-        private final long userId;  // идентификатор пользователя
-        private int page;           // номер страницы, на которой находится пользователь в хранилище
-//        private String messageId;   // идентификатор сообщения, которое надо редактировать/удалять
-        private long time;          // время последнего действия пользователя (нужно для проверки на таймауты)
+        private final long userId;  // РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+        private int page;           // РЅРѕРјРµСЂ СЃС‚СЂР°РЅРёС†С‹, РЅР° РєРѕС‚РѕСЂРѕР№ РЅР°С…РѕРґРёС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РІ С…СЂР°РЅРёР»РёС‰Рµ
+//        private String messageId;   // РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃРѕРѕР±С‰РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РЅР°РґРѕ СЂРµРґР°РєС‚РёСЂРѕРІР°С‚СЊ/СѓРґР°Р»СЏС‚СЊ
+        private long time;          // РІСЂРµРјСЏ РїРѕСЃР»РµРґРЅРµРіРѕ РґРµР№СЃС‚РІРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ (РЅСѓР¶РЅРѕ РґР»СЏ РїСЂРѕРІРµСЂРєРё РЅР° С‚Р°Р№РјР°СѓС‚С‹)
     }
 
     @Builder
@@ -46,7 +46,7 @@ public class ActiveSessionsKeeper {
     }
 
 
-    // true - активная сессия / false - протухшая
+    // true - Р°РєС‚РёРІРЅР°СЏ СЃРµСЃСЃРёСЏ / false - РїСЂРѕС‚СѓС…С€Р°СЏ
     private boolean checkTimeout(long millis) {
         return System.currentTimeMillis() - millis < 300_000;
     }

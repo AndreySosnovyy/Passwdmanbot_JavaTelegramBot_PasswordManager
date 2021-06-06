@@ -2,10 +2,7 @@ package ru.andreysosnovyy.tables;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.andreysosnovyy.DBHandler;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 
 @Getter
