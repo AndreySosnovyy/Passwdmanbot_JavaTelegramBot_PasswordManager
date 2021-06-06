@@ -67,6 +67,7 @@ public class Messages {
     public static final String TIME_RAN_OUT = WARNING_EMOJI + " | Время на добавление вышло!";
     public static final String RECORD_SUCCESSFULLY_ADDED = CHECK_EMOJI + " | Запись успешно добавлена!";
     public static final String ENTER_SEARCH_STRING = KEYBOARD_EMOJI + " | Введите поисковой запрос:";
+    public static final String WATCHING_RECORD_INSTRUCTION = FLOPPY_DISK_EMOJI + " Название сервиса | Логин | Пароль | Комментарий ";
     public static final String RECORD_NOT_ADDED = CROSS_MARK_EMOJI + " | Не удалось добавить запись! Попробуйте еще раз...";
     public static final String CONFIRM_DELETE_REPO = QUESTION_EMOJI + " | Вы уверены, что хотите удалить хранилище (все свои пароли)?";
     public static final String ENTER_NEW_REPO_PASS = KEY_EMOJI + " | Введите новый мастер-пароль для Вашего хранилища:";
@@ -93,4 +94,7 @@ public class Messages {
     public static final String DELETE_REPO = CROSS_MARK_EMOJI + " Удалить хранилище";
     public static final String YES = "Да";
     public static final String EXIT_SETTINGS = DOOR_EMOJI + " Покинуть настройки";
+    public static final String EDIT_RECORD_PASSWORD = PENCIL_EMOJI + " Редактировать пароль";
+    public static final String EDIT_RECORD_COMMENT = PENCIL_EMOJI + " Редактировать комментарий";
+    public static final String DELETE_RECORD = CROSS_MARK_EMOJI + " Удалить эту запись";
 }

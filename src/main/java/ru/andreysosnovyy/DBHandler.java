@@ -284,6 +284,81 @@ public class DBHandler extends DBConfig {
     }
 
 
+    public void deleteRecord(long userId, String serviceName) {
+        String request = "DELETE FROM " + PasswordRecord.Table.TABLE_NAME +
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?" +
+                " AND " + PasswordRecord.Table.SERVICE_NAME + "=?";
+
+        String encodedServiceName = null;
+        try {
+            encodedServiceName = new String(Cryption.do_AESEncryption(serviceName,
+                    Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assert encodedServiceName != null;
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setLong(1, userId);
+            preparedStatement.setString(2, encodedServiceName);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void editRecordPassword(long userId, String newPassword) {
+        String request = "UPDATE " + PasswordRecord.Table.TABLE_NAME +
+                " SET " + PasswordRecord.Table.PASSWORD + "=?" +
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?";
+
+        String encodedNewPassword = null;
+        try {
+            encodedNewPassword = new String(Cryption.do_AESEncryption(newPassword,
+                    Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assert encodedNewPassword != null;
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setString(1, encodedNewPassword);
+            preparedStatement.setLong(2, userId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void editRecordComment(long userId, String newComment) {
+        String request = "UPDATE " + PasswordRecord.Table.TABLE_NAME +
+                " SET " + PasswordRecord.Table.COMMENT + "=?" +
+                " WHERE " + PasswordRecord.Table.USER_ID + "=?";
+
+        String encodedNewComment = null;
+        try {
+            encodedNewComment = new String(Cryption.do_AESEncryption(newComment,
+                    Cryption.getSecretKeyFromString(getUserSecretKey(userId))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assert encodedNewComment != null;
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(request);
+            preparedStatement.setString(1, encodedNewComment);
+            preparedStatement.setLong(2, userId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     // для админа
     public void clearDB() {
         String request = "DELETE FROM users WHERE `id` > 0";

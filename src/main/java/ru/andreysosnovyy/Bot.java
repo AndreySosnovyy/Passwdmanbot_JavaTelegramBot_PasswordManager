@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.andreysosnovyy.config.BotConfig;
 import ru.andreysosnovyy.config.Messages;
 import ru.andreysosnovyy.tables.PasswordRecord;
@@ -363,6 +364,46 @@ public class Bot extends TelegramLongPollingBot {
                     handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
                     new RepositoryWorker(this, update).start(message.getText());
                 }
+
+                case UserState.Names.REPOSITORY_RECORD -> {
+                    if (message.getText().equals(Messages.BACK)) {
+                        activeSessionsKeeper.prolongSession(message.getChatId());
+                        WatchingRecordsController.remove(message.getChatId());
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                        new RepositoryWorker(this, update).start(null);
+
+                    } else if (message.getText().equals(Messages.EDIT_RECORD_PASSWORD)) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_PASSWORD));
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_EDIT_RECORD_PASSWORD);
+
+                    } else if (message.getText().equals(Messages.EDIT_RECORD_COMMENT)) {
+                        execute(new SendMessage(message.getChatId().toString(), Messages.ENTER_COMMENT));
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_EDIT_RECORD_COMMENT);
+
+                    } else if (message.getText().equals(Messages.DELETE_RECORD)) {
+                        activeSessionsKeeper.prolongSession(message.getChatId());
+                        handler.deleteRecord(message.getChatId(), WatchingRecordsController.getServiceName(message.getChatId()));
+                        WatchingRecordsController.remove(message.getChatId());
+                        handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                        new RepositoryWorker(this, update).start(null);
+                    }
+                }
+
+                case UserState.Names.REPOSITORY_EDIT_RECORD_PASSWORD -> {
+                    activeSessionsKeeper.prolongSession(message.getChatId());
+                    handler.editRecordPassword(message.getChatId(), message.getText());
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                    new DeleteMessageUtil(this, new DeleteMessage(message.getChatId().toString(), message.getMessageId()), 0).start();
+                    new RepositoryWorker(this, update).start(null);
+                }
+
+                case UserState.Names.REPOSITORY_EDIT_RECORD_COMMENT -> {
+                    activeSessionsKeeper.prolongSession(message.getChatId());
+                    handler.editRecordComment(message.getChatId(), message.getText());
+                    handler.setUserState(message.getChatId(), UserState.Names.REPOSITORY_LIST);
+                    new RepositoryWorker(this, update).start(null);
+                    new DeleteMessageUtil(this, new DeleteMessage(message.getChatId().toString(), message.getMessageId()), 0).start();
+                }
             }
 
         } else if (update.hasCallbackQuery()) { // колбэки используются только в хранилище!
@@ -371,8 +412,6 @@ public class Bot extends TelegramLongPollingBot {
             String callbackData = callback.getData();
             long messageId = callback.getMessage().getMessageId();
             long chatId = callback.getMessage().getChatId();
-
-            String userState = handler.getUserState(chatId); // состояние пользователя
 
             // создание обновления сообщения (заполнятся будет в if)
             EditMessageText editMessage = new EditMessageText();
@@ -430,7 +469,9 @@ public class Bot extends TelegramLongPollingBot {
                             (chatId), lastPage).getInlineKeyboardMarkup(null));
 
                 } else { // нажата кнопка записи хранилища
-
+                    WatchingRecordsController.add(chatId, callbackData);
+                    handler.setUserState(chatId, UserState.Names.REPOSITORY_RECORD);
+                    WatchingRecordsController.showKeyboard(this, chatId, callbackData);
                 }
 
                 // обновление созданного и заполненного выше сообщения

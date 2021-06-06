@@ -99,7 +99,7 @@ public class DBPasswordRecordsBuilder {
     public DBPasswordRecord buildAndGet(long userId) {
         for (DBPasswordRecord record : dbPasswordRecords) {
             if (record.getUserId() == userId) {
-                try { // шифрование
+                try { // С€РёС„СЂРѕРІР°РЅРёРµ
                     SecretKey secretKey = Cryption.getSecretKeyFromString(handler.getUserSecretKey(record.getUserId()));
                     record.setServiceName(new String(
                             Cryption.do_AESEncryption(record.getServiceName(), secretKey)));

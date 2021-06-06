@@ -31,6 +31,9 @@ public class UserState {
         public static final String REPOSITORY_ADD_LOGIN = "repository_add_login"; // ожидание ввода логина
         public static final String REPOSITORY_ADD_PASSWORD = "repository_add_password"; // ожидание ввода пароля
         public static final String REPOSITORY_ADD_COMMENT = "repository_add_comment"; // ожидание ввода комментария
+        public static final String REPOSITORY_RECORD = "repository_record"; // пользователь просматривает одну из записей хранилища
+        public static final String REPOSITORY_EDIT_RECORD_PASSWORD = "repository_edit_record_password"; // ожидание ввода нового пароля
+        public static final String REPOSITORY_EDIT_RECORD_COMMENT = "repository_edit_record_comment"; // ожидание ввода нового комментария
 
         public static final String SETTINGS = "settings"; // ожидание четкой инструкции настроек
         public static final String SETTINGS_ENTER_REPO_PASS = "settings_enter_repo_pass"; // ожидание ввода мастер-пароля
